@@ -1,0 +1,1350 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alcoolic Adevărat</title>
+<meta name="description" content="Notează ce bei de la Alco Market: alcool pur și bani cheltuiți, zi de zi.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Alcoolic">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#EEF2EC">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0D1310">
+<meta name="format-detection" content="telephone=no">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow phone column; segmented tabs on top, a fixed "Calculează" bar at the bottom of the list view. */
+:root {
+  --bg: #EEF2EC;
+  --surface: #FFFFFF;
+  --sunk: #E3E9E1;
+  --fg: #16201A;
+  --muted: #56645B;
+  --line: #CFD8CD;
+  --accent: #1C6648;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #D6E8DE;
+  --amber: #A9690B;
+  --amber-soft: #F4E6CC;
+  --danger: #B3261E;
+  --sale: #C2410C;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1310; --surface: #151D19; --sunk: #1C2621; --fg: #E4EBE6; --muted: #98A69D;
+    --line: #2A3730; --accent: #5CC596; --accent-ink: #08170F; --accent-soft: #1D3529;
+    --amber: #EBB04B; --amber-soft: #392C14; --danger: #F2867E; --sale: #FB8B5B; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1310; --surface: #151D19; --sunk: #1C2621; --fg: #E4EBE6; --muted: #98A69D;
+  --line: #2A3730; --accent: #5CC596; --accent-ink: #08170F; --accent-soft: #1D3529;
+  --amber: #EBB04B; --amber-soft: #392C14; --danger: #F2867E; --sale: #FB8B5B; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.45; -webkit-text-size-adjust: 100%; }
+.wrap { max-width: 560px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 110px; }
+button, input, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; }
+p { margin: 0; }
+
+/* Header */
+.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.brand h1 span { color: var(--accent); }
+.brand p { color: var(--muted); font-size: 0.86rem; margin-top: 6px; }
+.status { font-size: 0.78rem; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.status[data-s="cloud"]::before { background: var(--accent); }
+.status[data-s="local"]::before { background: var(--amber); }
+
+/* Tabs */
+.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 14px 12px; margin-top: 4px; }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--sunk); border-radius: 12px; padding: 4px; gap: 4px; }
+.seg button { border: 0; background: transparent; padding: 10px 4px; border-radius: 9px; font-weight: 600; font-size: 0.88rem; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.badge { font-size: 0.72rem; font-weight: 700; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 1px 7px; font-variant-numeric: tabular-nums; }
+.badge[hidden] { display: none; }
+
+/* Results */
+.results { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 14px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stat { display: grid; gap: 2px; min-width: 0; }
+.stat .lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.stat .val { font-family: var(--display); font-weight: 800; font-size: clamp(1.7rem, 7.5vw, 2.3rem); line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.stat.alc .val { color: var(--amber); }
+.stat.money .val { color: var(--accent); }
+.stat .sub { font-size: 0.84rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.results .foot { font-size: 0.84rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; }
+.bar-tot { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; font-size: 0.84rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar-tot b { font-family: var(--display); font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; }
+.bar-tot .alc b { color: var(--amber); }
+.bar-tot .money b { color: var(--accent); }
+.found { font-size: 0.82rem; color: var(--muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.btn.more { width: 100%; margin-top: 10px; }
+
+/* Section headings */
+.sec-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 22px 0 10px; }
+.sec-h h2 { font-size: 1.15rem; font-weight: 700; }
+.sec-h .meta { font-size: 0.82rem; color: var(--muted); }
+
+/* Entries */
+.entries { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.entry { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; display: grid; gap: 10px; }
+.e-head { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
+.e-name { font-weight: 600; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
+.icon-btn { border: 0; background: var(--sunk); width: 32px; height: 32px; border-radius: 50%; flex: none; color: var(--muted); font-size: 0.9rem; }
+.e-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.field { display: grid; gap: 3px; min-width: 0; }
+.field > span:first-child { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
+.in { display: flex; align-items: center; background: var(--sunk); border-radius: 9px; padding-right: 8px; border: 1px solid transparent; min-width: 0; }
+.in input { border: 0; background: transparent; width: 100%; min-width: 0; padding: 8px 4px 8px 9px; font-variant-numeric: tabular-nums; font-size: 16px; }
+.in input:focus { outline: none; }
+.in:focus-within { border-color: var(--accent); }
+.in i { font-style: normal; font-size: 0.8rem; color: var(--muted); }
+.in.bad { border-color: var(--danger); }
+.in.est { background: var(--amber-soft); }
+.est-note { font-size: 0.78rem; color: var(--amber); margin-top: -4px; }
+.e-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.qty { display: flex; align-items: center; gap: 8px; }
+.stepper { display: inline-flex; align-items: center; background: var(--sunk); border-radius: 10px; }
+.stepper button { border: 0; background: transparent; width: 38px; height: 38px; font-size: 1.25rem; font-weight: 600; color: var(--fg); }
+.stepper output { min-width: 26px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.qty .unit { font-size: 0.88rem; color: var(--muted); }
+.drunk { display: flex; align-items: center; gap: 4px; }
+.drunk > span { font-size: 0.78rem; color: var(--muted); margin-right: 2px; }
+.drunk button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 5px 10px; font-size: 0.86rem; font-weight: 600; color: var(--muted); }
+.drunk button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.e-sum { font-size: 0.86rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.e-sum b { color: var(--fg); font-weight: 600; }
+
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 20px 16px; display: grid; gap: 12px; text-align: left; }
+.empty p { color: var(--muted); }
+.row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 10px 14px; font-weight: 600; font-size: 0.92rem; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.danger { background: var(--danger); border-color: var(--danger); color: var(--bg); }
+.btn.ghost { background: transparent; }
+.list-tools { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.list-tools .q { font-size: 0.88rem; color: var(--muted); }
+
+/* Fixed calculate bar */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--bg); border-top: 1px solid var(--line); padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.bar-in { max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.calc { border: 0; background: var(--accent); color: var(--accent-ink); font-family: var(--display); font-weight: 700; font-size: 1rem; padding: 12px 16px; border-radius: 12px; flex: none; }
+
+/* Catalog */
+.search { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; gap: 8px; }
+.search:focus-within { border-color: var(--accent); }
+.search svg { flex: none; color: var(--muted); }
+.search input { border: 0; background: transparent; width: 100%; padding: 12px 0; font-size: 16px; }
+.search input:focus { outline: none; }
+.cats { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0 4px; scrollbar-width: none; }
+.cats::-webkit-scrollbar { display: none; }
+.cats button { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 13px; font-size: 0.88rem; font-weight: 600; color: var(--muted); }
+.cats button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.products { list-style: none; margin: 8px 0 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.prod { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-top: 1px solid var(--line); }
+.prod:first-child { border-top: 0; }
+.prod .info { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.prod .nm { font-weight: 600; font-size: 0.95rem; line-height: 1.3; overflow-wrap: anywhere; }
+.prod .mt { font-size: 0.84rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.prod .mt .tilde { color: var(--amber); font-weight: 700; }
+.prod .mt .pnow { color: var(--fg); font-weight: 600; }
+.prod .mt .pnow.sale { color: var(--sale); }
+.prod .mt s { color: var(--muted); }
+.badge-sale { display: inline-block; background: var(--sale); color: var(--bg); font-size: 0.72rem; font-weight: 700; border-radius: 6px; padding: 1px 6px; vertical-align: 1px; }
+.brand p.checked { color: var(--accent); font-weight: 600; margin-top: 2px; font-size: 0.8rem; }
+.e-price { font-size: 0.82rem; color: var(--sale); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.e-price button { border: 0; background: transparent; color: var(--accent); font-weight: 700; text-decoration: underline; padding: 2px 0; font-size: 0.82rem; }
+.add { border: 0; background: var(--accent-soft); color: var(--accent); font-weight: 700; border-radius: 10px; padding: 8px 12px; font-size: 0.9rem; flex: none; white-space: nowrap; }
+.add.in-list { background: var(--accent); color: var(--accent-ink); }
+.rm-mine { border: 0; background: transparent; color: var(--muted); font-size: 0.82rem; text-decoration: underline; padding: 4px; }
+.note { font-size: 0.82rem; color: var(--muted); margin-top: 12px; }
+.note a { color: var(--accent); }
+.none { padding: 18px 12px; color: var(--muted); font-size: 0.92rem; }
+
+/* Manual */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 12px; }
+.card h2 { font-size: 1.05rem; font-weight: 700; }
+.card .hint { font-size: 0.86rem; color: var(--muted); }
+textarea { width: 100%; min-height: 88px; resize: vertical; background: var(--sunk); border: 1px solid transparent; border-radius: 10px; padding: 10px; font-size: 16px; }
+textarea:focus { outline: none; border-color: var(--accent); }
+.parse-msg { font-size: 0.86rem; color: var(--muted); }
+.parse-msg.ok { color: var(--accent); }
+.parse-msg.warn { color: var(--amber); }
+.form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.form-grid .wide { grid-column: 1 / -1; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+.check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.err { color: var(--danger); font-size: 0.86rem; }
+
+.method { font-size: 0.8rem; color: var(--muted); margin-top: 22px; line-height: 1.5; }
+
+/* Splash: a slow amber swirl seen from above a glass, the name settles in letter by letter */
+.splash { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: flex; align-items: center; justify-content: center;
+  padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(16px, env(safe-area-inset-left, 0px));
+  transition: opacity .8s cubic-bezier(.4,0,.2,1), visibility .8s; animation: spAuto .6s ease 5s forwards; }
+.splash.done { opacity: 0; visibility: hidden; pointer-events: none; }
+@keyframes spAuto { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+.sp-inner { position: relative; display: grid; justify-items: center; gap: 18px; text-align: center; transition: transform .8s cubic-bezier(.4,0,.2,1), filter .8s ease; }
+.sp-glow { position: absolute; top: -40px; width: 300px; height: 260px; border-radius: 50%; background: var(--amber-soft); filter: blur(60px); opacity: .9; z-index: -1; }
+.orb { position: relative; width: 136px; height: 136px; border-radius: 50%; }
+.orb-liquid { position: absolute; inset: 7px; border-radius: 50%; overflow: hidden; background: var(--amber); isolation: isolate; }
+.orb-liquid i { position: absolute; border-radius: 50%; filter: blur(16px); }
+.orb-liquid .b1 { width: 70%; height: 70%; left: 4%; top: 2%; background: var(--amber-soft); opacity: .75; transform-origin: 85% 90%; }
+.orb-liquid .b2 { width: 64%; height: 64%; right: 0; bottom: 0; background: var(--sale); opacity: .55; transform-origin: 15% 20%; }
+.orb-liquid .b3 { width: 56%; height: 56%; left: 22%; top: 40%; background: var(--fg); opacity: .16; transform-origin: 50% 0%; }
+.orb-rim { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--fg); opacity: .2; }
+.orb-shine { position: absolute; left: 26px; top: 22px; width: 38px; height: 14px; border-radius: 50%; background: var(--surface); opacity: .4; filter: blur(3px); transform: rotate(-28deg); }
+.sp-title { font-family: var(--display); font-weight: 800; font-size: clamp(1.9rem, 8.5vw, 2.5rem); letter-spacing: -0.02em; line-height: 1.05; text-wrap: balance; }
+.sp-title .w2 { color: var(--accent); }
+.sp-title .l { display: inline-block; }
+.sp-meta { display: grid; justify-items: center; gap: 10px; }
+.sp-line { width: 150px; height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.sp-line i { display: block; height: 100%; width: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--amber), var(--accent)); transform-origin: left center; transform: scaleX(.08); transition: transform .9s cubic-bezier(.22,.8,.24,1); }
+.sp-step { color: var(--muted); font-size: 0.9rem; min-height: 1.4em; transition: opacity .3s ease, transform .3s ease; }
+.sp-step.swap { opacity: 0; transform: translateY(3px); }
+.sp-src { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); opacity: .75; }
+@media (prefers-reduced-motion: no-preference) {
+  .orb { animation: spOrbIn 1.1s cubic-bezier(.2,.8,.2,1) both, spBreathe 4.2s ease-in-out 1.1s infinite; }
+  .orb-liquid .b1 { animation: spSwirl 7s linear infinite; }
+  .orb-liquid .b2 { animation: spSwirl 9s linear infinite reverse; }
+  .orb-liquid .b3 { animation: spSwirl 11s linear infinite; }
+  .sp-glow { animation: spGlow 4.2s ease-in-out infinite; }
+  .sp-title .l { opacity: 0; transform: translateY(12px); filter: blur(6px); animation: spLetter .9s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(.3s + var(--i) * 42ms); }
+  .sp-meta { animation: spFade .9s ease 1.1s both; }
+  .splash.done .sp-inner { transform: scale(1.06); filter: blur(4px); }
+}
+@keyframes spOrbIn { from { opacity: 0; transform: scale(.82); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes spBreathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@keyframes spSwirl { to { transform: rotate(360deg); } }
+@keyframes spGlow { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+@keyframes spLetter { to { opacity: 1; transform: none; filter: none; } }
+@keyframes spFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Day navigator */
+.daynav { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.dn-btn { flex: none; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 1.5rem; line-height: 1; color: var(--fg); }
+.dn-btn:disabled { opacity: .35; cursor: default; }
+.dn-label { flex: 1; min-width: 0; display: grid; text-align: center; }
+.dn-rel { font-family: var(--display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.01em; }
+.dn-date { font-size: 0.86rem; color: var(--muted); }
+.dn-today { display: block; margin: -4px auto 12px; border: 0; background: transparent; color: var(--accent); font-weight: 700; text-decoration: underline; font-size: 0.88rem; }
+.bar-tot .day { font-weight: 700; color: var(--fg); }
+
+/* Calendar */
+.cal-head { display: flex; align-items: center; gap: 10px; }
+.cal-head h2 { flex: 1; text-align: center; font-size: 1.3rem; font-weight: 800; }
+.cal-sum { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin-top: 12px; }
+.stat .val.sm { font-size: clamp(1.35rem, 6vw, 1.7rem); }
+.cal-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--sunk); border-radius: 12px; padding: 4px; margin: 12px 0 10px; }
+.cal-toggle button { border: 0; background: transparent; border-radius: 9px; padding: 8px 4px; font-weight: 600; font-size: 0.85rem; color: var(--muted); }
+.cal-toggle button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-wd { text-align: center; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 2px 0 4px; }
+.cd { position: relative; aspect-ratio: 1 / 1.08; max-width: 100%; min-width: 0; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); padding: 4px 3px 7px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1px; overflow: hidden; font-variant-numeric: tabular-nums; color: var(--fg); }
+.cd .cd-n { font-size: 0.82rem; font-weight: 600; }
+.cd .cd-v { font-size: 0.66rem; font-weight: 700; color: var(--amber); white-space: nowrap; }
+.cal-grid.lei .cd .cd-v { color: var(--accent); }
+.cd .cd-bar { position: absolute; left: 4px; bottom: 4px; height: 4px; border-radius: 2px; background: var(--amber); max-width: calc(100% - 8px); }
+.cal-grid.lei .cd .cd-bar { background: var(--accent); }
+.cd.has { background: var(--amber-soft); border-color: transparent; }
+.cal-grid.lei .cd.has { background: var(--accent-soft); }
+.cd.today { box-shadow: inset 0 0 0 2px var(--accent); }
+.cd.sel { outline: 2px solid var(--fg); outline-offset: 1px; }
+.cd:disabled { opacity: .35; cursor: default; }
+.cd.blank { border: 0; background: transparent; }
+.cal-day { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; margin-top: 14px; display: grid; gap: 10px; }
+.cal-day h3 { margin: 0; font-family: var(--display); font-size: 1.1rem; font-weight: 800; }
+.cal-day .cdl-tot { font-size: 0.86rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cal-day .cdl-tot b { color: var(--fg); }
+.cal-day ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.cal-day li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+.cal-day li:first-child { border-top: 0; }
+.cal-day .cdl-name { font-weight: 600; font-size: 0.92rem; line-height: 1.3; overflow-wrap: anywhere; }
+.cal-day .cdl-meta { font-size: 0.8rem; color: var(--muted); }
+.cal-day .cdl-r { flex: none; text-align: right; font-size: 0.84rem; font-variant-numeric: tabular-nums; }
+.cal-day .cdl-r b { display: block; color: var(--amber); }
+.cal-day .muted { color: var(--muted); }
+
+/* Toast */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+@media (prefers-reduced-motion: no-preference) {
+  .toast { animation: rise .18s ease-out; }
+  @keyframes rise { from { transform: translate(-50%, 8px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+}
+@media (max-width: 360px) {
+  .e-fields, .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="splash" id="splash" role="status" aria-live="polite" aria-label="Se încarcă Alcoolic Adevărat">
+  <div class="sp-inner">
+    <div class="sp-glow" aria-hidden="true"></div>
+    <div class="orb" aria-hidden="true">
+      <div class="orb-liquid"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+      <div class="orb-shine"></div>
+      <div class="orb-rim"></div>
+    </div>
+    <div class="sp-title" aria-hidden="true"><span class="w1"><span class="l" style="--i:0">A</span><span class="l" style="--i:1">l</span><span class="l" style="--i:2">c</span><span class="l" style="--i:3">o</span><span class="l" style="--i:4">o</span><span class="l" style="--i:5">l</span><span class="l" style="--i:6">i</span><span class="l" style="--i:7">c</span></span> <span class="w2"><span class="l" style="--i:8">A</span><span class="l" style="--i:9">d</span><span class="l" style="--i:10">e</span><span class="l" style="--i:11">v</span><span class="l" style="--i:12">ă</span><span class="l" style="--i:13">r</span><span class="l" style="--i:14">a</span><span class="l" style="--i:15">t</span></span></div>
+    <div class="sp-meta">
+      <div class="sp-line" aria-hidden="true"><i id="spBar"></i></div>
+      <p class="sp-step" id="spStep">Se încarcă băuturile…</p>
+      <p class="sp-src">Alco Market · Chișinău</p>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Alcoolic <span>Adevărat</span></h1>
+      <p><span id="catCount">1 558 de produse</span> de pe alcomarket.md</p>
+      <p class="checked" id="priceInfo">Prețuri din 15 oct. 2026</p>
+    </div>
+    <span class="status" id="status" data-s="loading">Se încarcă…</span>
+  </header>
+
+  <nav class="tabs" aria-label="Secțiuni">
+    <div class="seg" role="tablist">
+      <button role="tab" id="tab-lista" aria-controls="panel-lista" aria-selected="true">Ziua <span class="badge" id="badge" hidden>0</span></button>
+      <button role="tab" id="tab-cal" aria-controls="panel-cal" aria-selected="false">Calendar</button>
+      <button role="tab" id="tab-catalog" aria-controls="panel-catalog" aria-selected="false">Catalog</button>
+      <button role="tab" id="tab-manual" aria-controls="panel-manual" aria-selected="false">Adaugă</button>
+    </div>
+  </nav>
+
+  <!-- LISTA -->
+  <section id="panel-lista" role="tabpanel" aria-labelledby="tab-lista">
+    <div class="daynav">
+      <button class="dn-btn" id="dayPrev" type="button" aria-label="Ziua precedentă">‹</button>
+      <div class="dn-label"><span class="dn-rel" id="dayRel">Azi</span><span class="dn-date" id="dayLabel"></span></div>
+      <button class="dn-btn" id="dayNext" type="button" aria-label="Ziua următoare">›</button>
+    </div>
+    <button class="dn-today" id="dayToday" type="button" hidden>Înapoi la azi</button>
+    <div class="results" id="results" aria-live="polite">
+      <div class="stats">
+        <div class="stat alc">
+          <span class="lbl">Alcool pur băut</span>
+          <span class="val" id="rPure">0 ml</span>
+          <span class="sub" id="rPureSub">0 g · 0 porții standard</span>
+        </div>
+        <div class="stat money">
+          <span class="lbl">Total cheltuit</span>
+          <span class="val" id="rSpent">0,00 lei</span>
+          <span class="sub" id="rSpentSub">pe toate băuturile</span>
+        </div>
+      </div>
+      <p class="foot" id="rFoot">Se calculează automat. Adaugă băuturi din Catalog și totalurile se actualizează pe loc.</p>
+    </div>
+
+    <div class="sec-h">
+      <h2>Ce ai băut</h2>
+      <span class="meta" id="listMeta"></span>
+    </div>
+    <div class="empty" id="empty">
+      <p id="emptyText">Nimic notat în ziua asta. Alege băuturi din catalogul Alco Market sau adaugă una lipind denumirea și prețul de pe site.</p>
+      <div class="row-btns">
+        <button class="btn primary" data-go="catalog">Deschide catalogul</button>
+        <button class="btn" data-go="manual">Lipește de pe site</button>
+      </div>
+    </div>
+    <ul class="entries" id="entries"></ul>
+    <div class="list-tools" id="listTools" hidden>
+      <span class="q" id="clearQ" hidden>Ștergi toate băuturile din ziua asta?</span>
+      <button class="btn ghost" id="clearBtn">Golește ziua</button>
+      <button class="btn danger" id="clearYes" hidden>Da, golește</button>
+      <button class="btn" id="clearNo" hidden>Anulează</button>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section id="panel-cal" role="tabpanel" aria-labelledby="tab-cal" hidden>
+    <div class="cal-head">
+      <button class="dn-btn" id="calPrev" type="button" aria-label="Luna precedentă">‹</button>
+      <h2 id="calTitle"></h2>
+      <button class="dn-btn" id="calNext" type="button" aria-label="Luna următoare">›</button>
+    </div>
+    <div class="cal-sum">
+      <div class="stat alc"><span class="lbl">Alcool pur în lună</span><span class="val sm" id="calPure">0 ml</span><span class="sub" id="calPureSub"></span></div>
+      <div class="stat money"><span class="lbl">Cheltuit în lună</span><span class="val sm" id="calSpent">0,00 lei</span><span class="sub" id="calDays"></span></div>
+    </div>
+    <div class="cal-toggle" role="group" aria-label="Ce arată calendarul">
+      <button type="button" data-m="alc" aria-pressed="true">Alcool pur (ml)</button>
+      <button type="button" data-m="lei" aria-pressed="false">Cheltuit (lei)</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-day" id="calDay"></div>
+  </section>
+
+  <!-- CATALOG -->
+  <section id="panel-catalog" role="tabpanel" aria-labelledby="tab-catalog" hidden>
+    <label class="search" for="q">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Caută: Kvint, Chișinău, prosecco…" autocomplete="off">
+    </label>
+    <div class="cats" id="cats" role="group" aria-label="Categorii"></div>
+    <p class="found" id="found"></p>
+    <ul class="products" id="products"></ul>
+    <button class="btn more" id="moreBtn" type="button" hidden>Arată mai multe</button>
+    <p class="note">Prețurile sunt cele afișate pe <a href="https://alcomarket.md/ro" target="_blank" rel="noopener">alcomarket.md</a> pe 15 oct. 2026 și se pot schimba. Tăria marcată cu <b style="color:var(--amber)">~</b> nu apare pe site și e estimată după tipul băuturii; o poți corecta în listă. Dacă nu găsești o băutură, o adaugi din fila Adaugă.</p>
+  </section>
+
+  <!-- MANUAL -->
+  <section id="panel-manual" role="tabpanel" aria-labelledby="tab-manual" hidden>
+    <form class="card" id="manualForm" novalidate>
+      <h2>Lipește de pe Alco Market</h2>
+      <p class="hint">Pe alcomarket.md deschide produsul, copiază denumirea și prețul, apoi lipește-le aici. Volumul, tăria și prețul se completează singure.</p>
+      <textarea id="paste" placeholder="ex: VODCA SOBIESKI SUPERIOR ALC.40% 0.7L 145.00 mdl"></textarea>
+      <p class="parse-msg" id="parseMsg">Aștept textul copiat.</p>
+      <div class="form-grid">
+        <label class="field wide"><span>Denumire</span><span class="in"><input id="mName" autocomplete="off" placeholder="ex: Divin Kvint 5 ani"></span></label>
+        <label class="field"><span>Volum</span><span class="in"><input id="mVol" inputmode="decimal" placeholder="0,5"><i>L</i></span></label>
+        <label class="field"><span>Tărie</span><span class="in" id="mAbvWrap"><input id="mAbv" inputmode="decimal" placeholder="40"><i>%</i></span></label>
+        <label class="field"><span>Preț/sticlă</span><span class="in"><input id="mPrice" inputmode="decimal" placeholder="135"><i>lei</i></span></label>
+      </div>
+      <label class="check"><input type="checkbox" id="mSave" checked> Păstrează și în catalog, la „Ale mele”</label>
+      <p class="err" id="mErr" hidden></p>
+      <div class="row-btns">
+        <button class="btn primary" type="submit">Adaugă în listă</button>
+        <button class="btn" type="button" id="mReset">Golește câmpurile</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <div class="bar-tot" id="barTot" aria-live="polite">
+      <span class="bt day" id="barDay">Azi</span>
+      <span class="bt alc"><b id="barPure">0 ml</b> alcool pur</span>
+      <span class="bt money"><b id="barSpent">0,00 lei</b> cheltuit</span>
+    </div>
+    <button class="calc" id="barBtn" type="button" hidden>Vezi ziua</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Catalog: alcomarket.md, 15 oct 2026. [categorie, denumire, volum L, tărie %, preț lei, tărie estimată] ---------- */
+  var RAW = [["lichior","Lichior Villa Cardea Amaretto",0.7,25.0,169.0,0,"624d2407"],["lichior","Lichior Villa Cardea Limoncello",0.7,25.0,159.0,0,"fa6c044d"],["lichior","Lichior Villa Cardea Sambuca",0.7,38.0,189.0,0,"b3715a23"],["lichior","Aperitiv Villa Cardea",1.0,11.0,199.0,0,"1ca0673f"],["lichior","Aperitiv Villa Cardea",0.7,11.0,159.0,0,"830698ab"],["lichior","Lichior Riviere du Mat Mangue Passion",0.7,35.0,265.0,0,"4a75dc76"],["lichior","Lichior Riviere du Mat Noix de Coco",0.7,25.0,265.0,1,"e92b2c46"],["lichior","Lichior Bottega Sambuca Bianca",0.7,38.0,325.0,1,"8006adba"],["whisky","Set 1 Sticla Whisky Jim Beam White Bourbon + 1ST",0.7,40.0,499.0,0,"bf239d12"],["divin","Cognac Gautier VSOP With Gift Box",0.7,40.0,890.0,0,"114e3b5c"],["lichior","Liqueur Seven Senses Herbal",0.5,35.0,145.0,0,"73e6ff11"],["lichior","Liqueur Marie Brizard Peach",0.7,15.0,199.0,0,"bf7cb2d3"],["lichior","Liqueur Marie Brizard Passion Fruit",0.7,18.0,229.0,0,"b44b98ec"],["lichior","Liqueur Marie Brizard Curacao Bleu",0.7,23.0,199.0,0,"aa96611b"],["lichior","Liqueur Marie Brizard Cassis",0.7,15.0,199.0,0,"a899f0b2"],["lichior","Liqueur Marie Brizard Amaretto",0.7,23.0,199.0,0,"eb7f41b7"],["vodca","Vodcă Sobieski Superior",1.0,40.0,196.0,1,"53d1e6a4"],["vodca","Vodcă Sobieski Superior",0.7,40.0,145.0,1,"cc771930"],["vodca","Vodcă Sobieski Superior",0.5,40.0,105.0,1,"2279781c"],["divin","Divin Călărași Special Collection XO, 7 ani",0.5,40.0,219.0,1,"594c2640"],["gin","Gin Sakurao Original ABV Cutie",0.7,47.0,899.0,0,"2db5fed7"],["whisky","Whisky Togouchi Beer Cask Finish, în cutie",0.7,40.0,999.0,1,"3c67cc2b"],["whisky","Blended Scotch Whisky Cutty Sark Centenary 23YO",0.7,52.2,2990.0,0,"2f7133"],["whisky","Whisky Glen Moray Elgin Heritage 12YO Single Malt",0.7,40.0,739.0,1,"a02d02d4"],["whisky","Whisky Glen Moray Elgin Heritage 15YO Single Malt",0.7,40.0,1099.0,1,"80bf7e9f"],["whisky","Whisky Glen Moray Elgin Heritage, single malt, 18 ani",0.7,40.0,2599.0,1,"b65f925b"],["whisky","Whisky Label 5 Classic Black",0.7,40.0,209.0,1,"d89978b1"],["whisky","Blended Scotch Whisky Cutty Sark",1.75,40.0,649.0,0,"f02a6443"],["whisky","Whisky Scotch Label 5 Gold Heritage",0.7,40.0,459.0,1,"ce592ade"],["whisky","Whisky Label 5 Classic Black",1.0,40.0,299.0,0,"473f8725"],["whisky","Whisky Scotch Label 5 Bourbon Barrel",0.7,40.0,209.0,1,"c2af094b"],["whisky","Whisky Label 5 Classic Black",2.0,40.0,599.0,0,"4579397c"],["whisky","Whisky Glen Moray Port Cask Single Malt",0.7,40.0,599.0,1,"45570694"],["whisky","Whisky Glen Turner Heritage Double Cask",0.7,40.0,549.0,1,"594581f7"],["whisky","Blended Scotch Whisky Cutty Sark Prohibition",0.7,50.0,455.0,0,"c543ae9e"],["whisky","Whisky Glen Moray Elgin Classic, single malt",0.7,40.0,499.0,1,"4ec3c41b"],["whisky","Whisky Glen Moray Elgin Classic Single Malt Cabernet Cask",0.7,40.0,599.0,1,"39594fd5"],["whisky","Whisky Glen Moray Peated Single Malt",0.7,40.0,499.0,1,"e3a6e30"],["whisky","Whisky Glen Moray Single Malt Sherry Cask Finish",0.7,40.0,599.0,1,"85fb8912"],["divin","Brandy JP. Chenet Reserve Imperial",0.5,38.0,145.0,0,"b2ea7ec7"],["whisky","Whisky Akashi Meisei ABV Cutie",0.5,40.0,699.0,0,"97fbafac"],["whisky","Whisky Togouchi Sake Cask Finish ABV",0.7,40.0,999.0,0,"246cb562"],["whisky","Whisky Akashi Ume Blended ABV Cutie",0.5,40.0,799.0,0,"d8149179"],["whisky","Irish Whisky the Whistler 21 YO Single Malt and Vin Madeira Single Casks",0.7,40.0,25999.0,1,"4e26700"],["divin","Divin Calarasi Orfeu Sarajishvili 5 ani",0.5,40.0,144.0,1,"2047e27e"],["rom","Tequila Cazcabel Anejo 100% Agave",0.7,40.0,849.0,0,"4f2b593"],["divin","Divin Calarasi Orfeu Sarajishvili 3 ani",0.5,40.0,149.0,1,"e628ebf9"],["divin","Divin Sofia 33 ani Cut.suv",0.7,40.0,4990.0,1,"dce416dc"],["rom","Tequila Cazcabel Reposado 100% Agave",0.7,38.0,649.0,0,"54f8a9d4"],["lichior","Lichior de Cafea cu Tequila Cazcabel",0.7,34.0,499.0,0,"f68670b2"],["rom","Tequila Cazcabel Blanco, 100% agave",0.7,38.0,599.0,1,"d4648211"],["divin","Divin Kvint Tiraspol XO, 15 ani, în cutie",0.5,40.0,949.0,1,"1908d9f8"],["divin","Divin Kvint Surprise, 10 ani, decantor, în cutie",0.5,40.0,399.0,1,"6e98eac7"],["divin","Divin Călărași Legenda, 5 ani",0.5,40.0,135.0,1,"27e832b2"],["rom","Rom Captain Morgan Spiced Gold",1.0,35.0,399.0,1,"ed3c61dd"],["divin","Divin Kvint Surprise, 10 ani, decantor, în cutie",0.75,40.0,559.0,1,"b3e986d5"],["lichior","Lichior de Desert de Gutui Dubasari",0.5,16.0,119.0,0,"7e2f65e"],["divin","Divin Kvint Surprise, 10 ani, sticlă Conus",0.5,40.0,279.0,1,"7d88c96"],["vodca","Vodcă Nemiroff Honey Pepper Original",0.7,40.0,162.0,1,"802e0f5b"],["whisky","Whisky Grant's",1.0,40.0,409.0,1,"97705202"],["divin","Divin Moldavskii Aist Moldova Vin 5 ani",0.5,40.0,137.0,0,"cb5114d2"],["divin","Divin Kvint XO, 14 ani, decantor, în cutie",0.5,40.0,599.0,1,"ec1c272b"],["vodca","Vodcă Finlandia Classic",1.75,40.0,499.0,1,"5f019a28"],["divin","Divin Kvint, 20 de ani, decantor, în cutie",0.5,40.0,1399.0,1,"479bfe0b"],["vodca","Vodcă Khortytsa Premium",0.7,40.0,149.0,1,"4bfd3a2a"],["vodca","Vodcă Finlandia Cranberry, cu aromă de merișoare",0.5,37.5,163.0,1,"ebefd903"],["divin","Divin Kvint, 25 de ani, decantor, în cutie",0.5,40.0,1699.0,1,"19ad24fe"],["vodca","Vodcă Finlandia Redberry, cu aromă de fructe roșii",0.5,37.5,163.0,1,"b99cdc89"],["whisky","Whiskey Knob Creek Bourbon 9 ani",0.7,50.0,999.0,0,"f463dfed"],["divin","Kvint (30 Ani)",0.5,40.0,1999.0,1,"1ee0489"],["vodca","Vodcă Finlandia Grapefruit, cu aromă de grepfrut",0.5,37.5,163.0,1,"20f7c4ca"],["divin","Brandy Shustov Chocolatier Cherry",0.5,30.0,119.0,0,"c9379420"],["divin","Kvint (33 Ani)",0.5,40.0,2299.0,1,"8f61036a"],["divin","Divin Buket Moldavii 7 ani XO",0.5,40.0,165.0,0,"b738de5e"],["divin","Brandy Shustov Grand Royal Peach",0.5,30.0,149.0,0,"957cc8d1"],["divin","Kvint Solnecinîi (20 Ani) Olymp",0.7,40.0,2699.0,1,"21c12821"],["divin","Brandy Shustov Grand Royal Green Apple",0.5,30.0,149.0,0,"99a85cbb"],["lichior","Lichior Alpen Kaiser",0.5,35.0,99.9,0,"609e1441"],["alte","Rachiu Nimorinka de Piersici",0.5,40.0,115.0,1,"f647488c"],["vodca","Vodcă Finlandia Lime, cu aromă de lime",0.5,37.5,163.0,1,"e8531db0"],["gin","Gin Bulldog NRG",0.7,40.0,519.0,1,"eda08037"],["gin","Gin Bickens London Dry NRG",0.7,40.0,289.0,1,"77a71df4"],["vodca","Vodcă Sobieski Premium",0.5,40.0,99.9,1,"96fe1846"],["whisky","Whisky the Famous Grouse",0.5,40.0,219.0,1,"5ac4b777"],["vodca","Vodcă Sobieski Premium",0.7,40.0,139.0,1,"78f0796a"],["divin","Prince Wittgenstein (50 Ani) Grafin",0.7,40.0,40999.0,1,"e7f46dcf"],["gin","Gin Gibson's London Dry",1.0,37.5,279.0,0,"c9e9e274"],["vodca","Vodcă Sobieski Premium",1.0,40.0,189.0,1,"e75686fe"],["divin","NISTRU (8 ani) in cutie DREAM",0.5,40.0,239.0,1,"4908455c"],["vodca","Vodcă Nemiroff Delikat Extra Smooth",0.7,40.0,151.0,1,"f2b07970"],["divin","Calvados Busnel D'auge",0.7,40.0,499.0,1,"a3605ed5"],["divin","Divin Calarasi Figurini Sabie 5 ani",0.5,40.0,569.0,1,"89336b6c"],["vodca","Vodcă Nemiroff Delikat Extra Smooth",0.5,40.0,123.0,1,"1cbe185c"],["divin","Kvint ( 7 Ani)",0.7,40.0,359.0,1,"d6ec3978"],["lichior","Lichior Old Virginia Honey",0.7,25.0,199.0,1,"82c89e9c"],["vodca","Vodcă Vozduh Party",0.5,40.0,105.0,1,"8415c419"],["vodca","Vodcă Skyy",0.75,40.0,229.0,1,"1fce36c1"],["divin","Armagnac Saint-vivant",0.7,40.0,759.0,1,"557f59c5"],["whisky","Whisky Wild Turkey",0.7,40.0,399.0,1,"8b2ca566"],["divin","Kvint ( 9 Ani)",0.7,40.0,399.0,1,"c3662b4a"],["whisky","Whisky Scotch Jura 10 Y.O + 2 Pahare",0.7,40.0,1019.0,1,"187710fd"],["vodca","Vodcă Khortytsa Silver Cool",0.7,40.0,149.0,1,"2a2131a9"],["vodca","Vodcă Helsinki Blue Edition",0.5,40.0,159.0,1,"7db85eed"],["whisky","Whisky O'Brian Irish",0.7,40.0,325.0,1,"38d73d66"],["whisky","Whisky Jack Daniel’s Fire",0.7,35.0,417.0,1,"75cb9f2d"],["vodca","Vodcă Helsinki Pure",0.7,40.0,199.0,1,"f0e68c58"],["divin","Divin Migdal-p 5 ani",0.5,40.0,143.0,0,"673cf3db"],["alte","Set cadou Jack Daniel's Honey, + 2 pahare",0.7,40.0,609.0,1,"cb63f634"],["divin","Divin Château Vartely Tribut XO, 7 ani",0.7,40.0,359.0,1,"16ab8b84"],["gin","Gin Gordon’s London Dry Gin",0.7,40.0,305.0,1,"ba5423ee"],["gin","Gin Gibson's Blood Orange",0.7,40.0,209.0,1,"4cd017c5"],["whisky","Whisky Gurkha Bourbon 3 ani",0.75,43.0,1299.0,0,"1993dc1d"],["gin","Gin Tanqueray London Dry",0.7,40.0,415.0,1,"fbd6281e"],["divin","Divin Barza Neagră, 5 ani",0.5,40.0,124.0,1,"b61bb9fd"],["whisky","Whisky Bunnahabhain 12 Y.O",0.7,46.3,1250.0,0,"e11e52f6"],["gin","Gin Gibson's Pink Premium",0.7,37.5,209.0,0,"12bfe4b5"],["whisky","Whisky Chivas Regal, 12 ani, în cutie",0.5,40.0,436.0,1,"3250ad7a"],["whisky","Whisky Scotch Jura 12 Y.O + 2 Pahare",0.7,40.0,1089.0,1,"f919d450"],["gin","Gin Generous",0.7,40.0,689.0,1,"bccf5a57"],["rom","Rum Bacardi Carta Blanca",1.0,40.0,418.0,1,"f892bf1a"],["divin","Divin Aroma Chișinău, 10 ani, sticlă Suvenir",0.5,40.0,299.0,1,"2d0db0a0"],["vodca","Vodcă Khortytsa Platinum",0.7,40.0,145.0,1,"cfe1f3e4"],["lichior","Lichior Jack Daniel's Apple",0.7,32.5,417.0,1,"17f3a605"],["rom","Tequila Sauza Reposado",1.0,35.0,549.0,0,"b02546ca"],["divin","Divin Aroma Moldova, 7 ani, sticlă Suvenir",0.5,40.0,239.0,1,"668a4fbb"],["gin","Gin Lordson Dry Gin",1.0,37.5,239.0,0,"642b79ef"],["rom","Tequila Sauza Reposado",0.7,35.0,399.0,0,"2f83b95e"],["rom","Tequila Sauza Plata",0.7,35.0,399.0,0,"89202cf4"],["rom","Tequila Sauza Plata",1.0,35.0,549.0,0,"1686d360"],["divin","Divin Barza Albă VSOP, 5 ani",0.5,40.0,145.0,1,"ecbedbb9"],["rom","Tequila Tres Generaciones Plata",0.7,38.0,1199.0,0,"d6609eac"],["whisky","Whisky Akashi Blended ABV Cutie",0.5,40.0,599.0,0,"ddbf2232"],["whisky","Whisky Japanese Kamiki Blended Malt",0.5,40.0,849.0,1,"ed7cd737"],["rom","Tequila Tres Generaciones Anejo",0.7,38.0,1699.0,0,"5d5d367a"],["vodca","Vodcă Pervak Borodino Bread",0.5,40.0,79.9,1,"6cd7b499"],["whisky","Whisky Togouchi Premium, în cutie",0.7,40.0,899.0,1,"4d3b55d5"],["whisky","Whisky Japanese Kamiki Intense",0.5,40.0,925.0,1,"bbf5833f"],["rom","Tequila Tres Generaciones Reposado",0.7,38.0,1499.0,0,"ed034ba3"],["whisky","Whisky Single Malt Deanston Kentucky",0.7,40.0,639.0,0,"83ee61e"],["vodca","Vodcă Pshenoff Hlebnaia",0.5,40.0,98.9,1,"d635fb88"],["rom","Rom Bacardi Spiced",0.7,35.0,305.0,1,"843a183a"],["vodca","Vodcă Grey Goose",0.75,40.0,880.0,1,"c7d40e23"],["whisky","Whisky Blended Scottish Leader",0.7,40.0,259.0,0,"47805465"],["vodca","Vodcă Khortytsa Platinum",0.5,40.0,95.9,1,"21ef92c8"],["whisky","Whisky Ardbeg, single malt, 10 ani",0.7,40.0,1290.0,1,"dd5f3c4"],["divin","Divin Autentic 3 ani",0.5,40.0,132.9,1,"72771f0c"],["whisky","Whisky Japanese Fuyu",0.7,40.5,819.0,0,"94978bef"],["whisky","Whisky The Macallan Double Cask, 15 ani",0.7,40.0,2920.0,1,"e6189065"],["whisky","Bourbon Jim Beam, 4 ani",0.7,40.0,329.0,1,"4939ba1c"],["vodca","Vodcă Khortytsa Platinum",1.0,40.0,195.0,1,"50470c70"],["divin","Cognac Hennessy V.S",0.7,40.0,779.0,1,"48429f09"],["divin","Divin Autentic, 5 ani",0.5,40.0,155.0,1,"b418168b"],["lichior","Lichior Jim Beam Honey",0.7,32.5,339.0,1,"a1751d26"],["rom","Tequila Clase Azul Reposado",0.7,38.0,3990.0,1,"58bd4812"],["vodca","Vodcă Khortytsa Silver Cool",0.5,40.0,98.9,1,"c42f5085"],["divin","Divin Autentic 7 ani",0.5,40.0,199.0,1,"f63d11f6"],["lichior","Lichior the Whistler Irish Honey",0.7,33.0,449.0,0,"5fadf432"],["whisky","Whisky The Macallan Sherry Oak, 18 ani",0.7,40.0,6289.0,1,"49a9525c"],["divin","Coniac Hennessy VS",1.0,40.0,1129.0,1,"f75043b"],["divin","Divin Autentic, 10 ani",0.5,40.0,265.0,1,"170e3182"],["whisky","Irish Whisky the Whistler 10 YO French Oak",0.7,46.0,1350.0,0,"b662774a"],["whisky","Whisky the Famous Grouse Smoky Black Blended",0.7,40.0,392.0,1,"b4c5ee91"],["vodca","Vodcă Khortytsa Silver Cool",1.0,40.0,199.0,1,"b587ce3d"],["divin","Coniac Hennessy VSOP",0.7,40.0,1455.0,1,"48695c6d"],["whisky","Irish Whisky the Whistler Dark Symphony",0.7,43.0,679.0,0,"c6f919e1"],["whisky","Whisky Tullamore Dew Honey",0.7,35.0,399.0,0,"8a2570ae"],["gin","Gin Bottega Bacur",0.7,40.0,499.0,0,"ba1e7233"],["vodca","Vodcă Vozduh",0.5,40.0,105.0,1,"b99fb8ef"],["vodca","Vodcă Finlandia Classic",0.7,40.0,226.0,1,"aba3a1d"],["divin","Coniac Hennessy VS",0.5,40.0,629.0,1,"7edd9a83"],["whisky","Irish Whisky the Whistler Oloroso Sherry Cask Finish",0.7,43.0,709.0,0,"ff004e9f"],["lichior","Lichior Bottega Limoncino",0.5,30.0,239.0,1,"889d3d6"],["alte","Rachiu Spicusor Clasic",1.0,37.5,165.0,0,"11a16d30"],["whisky","Whisky Grant's Summer Orange",0.7,40.0,278.0,1,"8f47282a"],["whisky","Irish Whisky the Whistler Imperial Stout",0.7,43.0,729.0,0,"3f08835e"],["lichior","Lichior Bottega Nero",0.5,25.0,279.0,1,"ebf336d1"],["whisky","Whiskey The Whistler Triple Oaked",0.7,40.0,379.0,1,"19f63bf4"],["lichior","Lichior Bottega Panna Cotta",0.5,25.0,279.0,1,"20ba3404"],["divin","Divin Cricova, 5 ani",0.5,40.0,155.0,1,"f4fa6505"],["whisky","Whisky Hankey Bannister",0.7,40.0,299.0,0,"831c281f"],["lichior","Lichior Bottega Pistacchio",0.5,25.0,279.0,1,"53fedbe5"],["lichior","Lichior Cuerpo Pina Colada",0.7,15.0,199.0,0,"b9b6fb7c"],["lichior","Lichior Bottega Negroni",0.7,25.0,289.0,1,"24e7a260"],["lichior","Lichior Calarasi cu Miere",0.5,25.0,142.9,1,"c9d1a714"],["lichior","Lichior Nimorinka de Zmeura",0.5,20.0,123.9,0,"d8d0c0f5"],["whisky","Irish Whisky the Whistler 16 YO El Misterioso",0.7,46.0,3499.0,0,"1bb25555"],["lichior","Lichior Bottega Cappuccino",0.5,25.0,279.0,1,"415eaad3"],["lichior","Lichior Nimorinka de Mure",0.5,23.0,123.9,0,"aa8a81f9"],["rom","Rom Tiki Lovers Pineaple",0.7,50.0,419.0,0,"4afc7504"],["lichior","Lichior Golden Falerum",0.5,18.0,469.0,0,"4b0d8e64"],["vodca","Vodcă Khortytsa Classic",1.0,40.0,239.0,1,"e67f1b3b"],["vodca","Vodcă Zernoff Secărică",0.5,40.0,109.0,1,"6b4897bb"],["lichior","Lichior Pimento Dram",0.5,22.0,487.0,0,"b0bba5f8"],["gin","Gin Old Lady London Dry",0.7,37.5,209.0,0,"bf0b01e3"],["divin","Divin Barza Albă Bucuria XO, 10 ani",0.7,40.0,468.0,1,"2fdb0bdc"],["whisky","Whisky William Peel Blended Scotch",0.7,40.0,229.0,0,"7355818"],["rom","Tequila San José Gold",0.7,38.0,299.0,1,"891040b9"],["divin","Divin Ungheni, 5 ani",0.5,40.0,158.0,1,"385f10c7"],["whisky","Whisky Johnnie Walker Red Label",0.7,40.0,329.0,1,"706153bf"],["lichior","Lichior Gas Familia Amaretto La Bella",0.7,28.0,143.0,1,"8a4e26af"],["gin","Gin Beefeater London Dry",0.7,40.0,369.0,1,"92595be0"],["rom","Tequila San José Silver",0.7,38.0,299.0,1,"7e073f84"],["vodca","Vodcă Zernoff Na Moloke",0.5,40.0,119.0,1,"8c1fd184"],["whisky","Set 1 Sticla Whisky Jim Beam Black 7 ani +1pahar",0.7,45.0,669.0,0,"af84968a"],["vodca","Vodcă Zernoff Original",0.5,40.0,119.0,1,"d0817984"],["gin","Gin Beefeater Pink",0.7,37.5,399.0,0,"b4ca12ef"],["whisky","Whisky Glenmorangie The Original, 12 ani",0.7,40.0,789.0,1,"ab1a6cb1"],["vodca","Vodcă Zernoff Silver",0.5,40.0,119.0,1,"73a6a7e9"],["divin","Divin Legenda Moldovei 3 ani VS",0.5,40.0,135.0,1,"ce021165"],["divin","Băutură tare de colecție Ambassador, 30 de ani",0.7,40.0,1650.0,1,"6d8c9a17"],["divin","Divin Legenda Moldovei VSOP, 5 ani",0.5,40.0,159.0,1,"942dcf1d"],["vodca","Vodcă Russcaia",0.5,40.0,92.9,1,"65311c5e"],["divin","Divin Legenda Moldovei XO, 7 ani",0.5,40.0,209.0,1,"dcc99fff"],["lichior","Liqueur Melon",0.7,15.0,275.0,0,"4bbea6b7"],["lichior","Liqueur Creme de Cassis",0.7,15.0,275.0,0,"9b93f95"],["vodca","Vodcă Morosha Carpathian",0.7,40.0,129.0,1,"c64e6a45"],["divin","Divin Aroma 5 ani Moldova Vin",0.5,40.0,125.0,1,"2a75781e"],["lichior","Liqueur Creme de Bananes",0.7,24.0,275.0,0,"864e50f8"],["lichior","Crema Kick the Rules Banana cu Tequila",0.7,15.0,279.0,0,"d3047413"],["vodca","Vodcă Morosha Carpathian",0.5,40.0,89.9,1,"28400b69"],["vodca","Vodcă Morosha Spring",0.7,40.0,129.0,1,"17637230"],["lichior","Crema Kick the Rules Mango cu Tequila",0.7,15.0,279.0,0,"867131d"],["vodca","Vodcă Pshenoff Beriozovaia",0.5,40.0,98.9,1,"b36f5995"],["vodca","Vodcă Nemiroff De Luxe",0.7,40.0,223.0,1,"9d7ebd39"],["vodca","Vodcă Morosha Spring",0.5,40.0,99.9,1,"f96d131c"],["lichior","Crema Kick the Rules Strawberry cu Tequila",0.7,15.0,279.0,0,"57d4a1fa"],["vodca","Vodcă Pshenoff Classic",0.5,40.0,98.9,1,"7d39d59"],["lichior","Crema Kick the Rules Watermelon cu Tequila",0.7,15.0,279.0,0,"b865c97f"],["vodca","Vodcă Nemiroff De Luxe Honey Pepper",0.5,40.0,132.0,1,"bbf7dba7"],["whisky","Whisky Civitas",0.7,40.0,195.0,0,"4e1c71c4"],["whisky","Whisky Aroma 9 ani",0.5,40.0,131.9,1,"dafcd9ad"],["vodca","Vodcă Nemiroff De Luxe Honey Pepper",0.7,40.0,189.0,1,"55f9ba8b"],["whisky","Bourbon Jim Beam, 4 ani",1.0,40.0,439.0,1,"d69f4588"],["lichior","Lichior Jim Beam Apple",0.7,32.5,339.0,1,"1db34422"],["alte","Stejarul Regal Bautura Spirtoasa Alcoolica",0.5,40.0,109.0,0,"d460dc65"],["vodca","Vodcă Vozduh",0.7,40.0,136.0,1,"5791d9c3"],["lichior","Lichior Jim Beam Black Cherry",0.7,32.5,339.0,1,"205ee3dd"],["whisky","Whisky Johnnie Walker Red Label",1.0,40.0,469.0,1,"efc7ac2b"],["lichior","Lichior Country Lane",0.7,17.0,315.0,0,"b69618ec"],["whisky","Bourbon Jim Beam Black, 7 ani",0.7,40.0,599.0,1,"d15abddb"],["whisky","Whisky Johnnie Walker Black Label, 12 ani",0.7,40.0,689.0,1,"6a1028dc"],["vodca","Vodcă Zernoff Psenicinaia Standart",0.5,40.0,109.0,1,"1725e8ef"],["whisky","Whisky Laphroaig Quarter Cask, single malt",0.7,40.0,1499.0,1,"6d65a070"],["whisky","Whisky Johnnie Walker Gold Label Reserve",0.7,40.0,1145.0,1,"41b11189"],["whisky","Whisky Laphroaig Select Single Malt",0.7,40.0,999.0,0,"56f1ce77"],["vodca","Vodcă Posolskaia",0.5,40.0,84.9,1,"e731829f"],["lichior","Lichior Carolans",0.7,17.0,362.0,0,"3fc49180"],["whisky","Whisky Bunnahabhain Stiùireadair, single malt",0.7,40.0,729.0,1,"ccc77358"],["whisky","Whisky Laphroaig Single Malt 10 ani",0.7,40.0,1199.0,0,"1dfb6eb5"],["lichior","Lichior Malibu",0.7,21.0,349.0,0,"665c0a5f"],["whisky","Bourbon Maker’s Mark",0.7,40.0,699.0,1,"7339651c"],["gin","Gin Larios London Dry",0.7,37.5,239.0,0,"1e793bf9"],["lichior","Lichior Civitas Apple",0.7,25.0,189.0,1,"a051e216"],["rom","Tequila Olmeca Blanco",0.7,38.0,419.0,1,"49a29567"],["lichior","Lichior Sambuca Molinari Extra",0.7,38.0,309.0,1,"5e015da4"],["lichior","Lichior Civitas Honey",0.7,25.0,189.0,1,"1c97bb12"],["vodca","Vodcă Beluga Noble",0.7,40.0,809.0,1,"a321e6bc"],["rom","Tequila Olmeca Gold",0.7,38.0,439.0,0,"202fa446"],["vodca","Vodcă Khortytsa Ice",0.5,40.0,119.0,1,"480dee35"],["alte","Arak Kawar",0.7,40.0,199.0,0,"b1078473"],["slab","Bautura Slab Alcoolica Twists Arak and Lemon",0.7,16.0,279.0,0,"91ca93d8"],["divin","Brandy Galilee Selected",0.5,40.0,359.0,0,"ed6277b6"],["alte","Arak Galilee",0.7,40.0,199.0,0,"6c4e12de"],["slab","Bautura Slab Alcoolica Twists Arak and Passion Fruit",0.7,16.0,279.0,0,"bba15f5c"],["whisky","Whisky Glenfiddich 12 ani Cutie",0.7,40.0,1010.0,1,"f981ec16"],["whisky","WHISKY The Glenlivet Founder's Reserve",0.7,40.0,1059.0,1,"95a49b7f"],["slab","Bautura Slab Alcoolica Twists Arak and Pink Grapefruit",0.7,16.0,279.0,0,"dcf247ed"],["whisky","Whisky Glenfiddich, 15 ani, în cutie",0.7,40.0,1320.0,1,"418efc1"],["vodca","Vodcă Russian Standard Original",0.7,40.0,225.0,1,"9f8313cb"],["rom","Rom Havana Club 3 ani",0.7,40.0,409.0,0,"3469302e"],["gin","Gin Bombay Sapphire",0.7,40.0,439.0,1,"babfb2c7"],["divin","Brandy Ararat 3 ani",0.5,40.0,325.0,1,"d4a3a901"],["lichior","Lichior Cointreau",0.7,40.0,419.0,0,"f44375c1"],["vodca","Vodcă Zernoff Gospodar, cu miere și ardei",0.5,40.0,99.95,1,"11178810"],["whisky","Whisky Scottish Deer 3 ani",0.5,40.0,127.9,1,"729699de"],["whisky","Whiskey Busker Blend",0.7,40.0,349.0,0,"3ef99ada"],["vodca","Vodcă Khortytsa Premium",0.5,40.0,109.0,1,"a5f35b06"],["vodca","Vodcă Khortytsa Absolute Energy",0.5,40.0,99.9,1,"f096f1c3"],["lichior","Lichior Disaronno Originale",0.7,28.0,379.0,1,"93464c27"],["vodca","Vodcă Khortytsa Clasică",0.5,40.0,94.9,1,"8f223605"],["rom","Rom Havana Club 7 ani",0.7,40.0,765.0,0,"b0233ed4"],["lichior","Lichior Disaronno Originale",1.0,28.0,499.0,0,"ce0b3b3"],["vodca","Vodcă Khortytsa Classic",0.7,40.0,139.0,1,"79d9e4af"],["lichior","Lichior Luxardo Aperitivo",0.7,25.0,215.0,1,"ec82a509"],["divin","Divin Alexandrion, 5 ani",0.5,40.0,165.0,1,"af0a38ec"],["lichior","Lichior Disaronno Velvet",0.7,17.0,379.0,0,"e03bbc86"],["lichior","Lichior Luxardo Limoncello",0.7,30.0,299.0,1,"b75beecd"],["rom","Rom Angostura 1824 Premium 12YO",0.7,40.0,1015.0,0,"c47c05f5"],["whisky","Whiskey Busker Single Malt",0.7,44.3,599.0,0,"73f08970"],["whisky","Whisky Toki",0.7,43.0,999.0,0,"b8189e47"],["lichior","Lichior Luxardo Sambuca dei Cesari",0.7,38.0,309.0,1,"5ef262f2"],["divin","Divin Ig Kvint 10 ani Cutie",0.5,40.0,299.0,0,"cad1468b"],["rom","Rom Cuerpo Gold",0.7,37.5,189.0,0,"46dbf16c"],["lichior","Lichior Tia Maria",0.7,20.0,379.0,0,"d5fe0103"],["rom","Rom Cuerpo White",0.7,40.0,189.0,1,"e89cef40"],["lichior","Lichior Campari",0.7,25.0,355.0,1,"6f63bd98"],["whisky","Whiskey Tullamore Dew",0.7,40.0,375.0,1,"1f163556"],["lichior","Lichior Campari",1.0,25.0,425.0,1,"f0c5420c"],["whisky","Whisky Jameson Black Barrel",0.7,40.0,1019.0,1,"28cd29d7"],["lichior","Aperitiv Aperol",1.0,11.0,363.0,1,"bcdaa1f7"],["whisky","Whisky Scottish Deer 3 ani",0.7,40.0,178.0,1,"9c98f8f2"],["whisky","Whisky Jameson",4.5,40.0,2590.0,1,"d166036b"],["whisky","Whisky Scottish Collie, 3 ani",0.7,40.0,195.0,1,"4874f294"],["divin","Divin Roua Moldovei 5 ani",0.5,40.0,134.0,1,"ad0d0eb"],["rom","Rom Conde de Cuba 3 ani",0.7,38.0,519.9,0,"5229211d"],["divin","Divin Tezaur Gold XO, 10 ani",0.5,40.0,269.0,1,"2c07a3b"],["whisky","Whisky Long John",0.7,40.0,229.0,1,"8627b1ff"],["divin","Divin Tezaur Gold VSOP, 5 ani",0.5,40.0,149.0,1,"fd4735e4"],["lichior","Lichior Caballero",0.7,25.0,359.9,0,"1e634670"],["vodca","Vodcă Finlandia Classic",1.0,40.0,299.0,1,"951cc589"],["gin","Gin Royal King Blue",0.5,40.0,139.0,0,"718c0ebd"],["whisky","Whiskey Jack Daniel’s Old No. 7",1.0,40.0,555.0,1,"a3ea014f"],["gin","Gin Royal King Original",0.5,40.0,139.0,0,"d137da62"],["divin","Divin Cuza Voda 3 ani",0.5,40.0,129.0,1,"a23e7ec2"],["gin","Gin Royal King Grapefruit",0.5,40.0,139.0,0,"a7094088"],["divin","Divin Cuza Vodă, 5 ani",0.5,40.0,149.0,1,"64517745"],["whisky","Whisky Schotch Red Bowler Blended",1.0,40.0,299.0,1,"3ed7ea5a"],["vodca","Vodcă Absolut",0.7,40.0,309.0,1,"ca7bfbda"],["whisky","Whisky Japanese Kurayoshi",0.7,43.0,1550.0,0,"aa966431"],["divin","Divin Barbu 5 ani",0.5,40.0,135.0,0,"6ce0f162"],["vodca","Vodcă Volchitsa Decor",0.5,40.0,109.0,1,"bc2b2b76"],["vodca","Vodcă Absolut",1.0,40.0,409.0,1,"55dd044e"],["rom","Rum Tobacco Silver Premium",1.0,40.0,235.0,1,"e5e9eacb"],["whisky","Whisky Kurayoshi Pure Malt, 12 ani",0.7,40.0,2930.0,1,"c5e319b0"],["vodca","Vodcă Nemiroff Original",0.5,40.0,123.0,1,"a18f539c"],["divin","Divin Calarasi 10 ani Specil.col",0.5,40.0,285.0,1,"9413569d"],["rom","Rum Tobacco Black",1.0,40.0,247.0,1,"1e9686b4"],["rom","Rom Bacardi Reserva 8 ani",0.7,40.0,625.0,1,"65a6d8bc"],["whisky","Whiskey Harrison",0.7,40.0,399.0,0,"bd1b9ba9"],["vodca","Vodcă Kvint Volk Decor Mat",0.5,40.0,119.0,1,"d2ef8ab5"],["divin","Divin Calarasi Special Collection 5 ani VSOP",0.5,40.0,149.0,1,"eaf41a66"],["vodca","Vodcă Kvint Pokrovskaya",0.5,40.0,119.0,1,"c80ea070"],["gin","Gin Larios 12",0.7,40.0,339.0,0,"10b8f46a"],["vodca","Vodcă Kvint Zadorinka",0.5,40.0,107.9,1,"8cd5f64d"],["divin","Brandy J.P. Chenet XO",0.5,40.0,189.0,1,"97c010ec"],["lichior","Aperitiv Aperol",0.7,11.0,273.0,1,"237c5e63"],["lichior","Lichior Seven Senses Starka & Nuts",0.5,25.0,149.0,1,"91acd8aa"],["rom","Rum Pyrat XO",0.7,40.0,855.0,1,"affad616"],["gin","Gin Luxardo London Dry",0.7,43.0,327.0,0,"acd89148"],["rom","Tequila Milagro Silver",0.7,38.0,699.0,1,"9fd68cda"],["gin","Gin Generous Azur",0.7,40.0,689.0,0,"dfa70010"],["gin","Gin Luxardo Sour Cherry",0.7,37.5,355.0,0,"422ab29f"],["rom","Rum Bacardi Spiced",1.0,35.0,419.0,1,"75cbc7d0"],["lichior","Lichior Bottega Meloncino",0.5,28.0,279.0,0,"119b9812"],["rom","Rum Captain Morgan Black",1.0,40.0,429.0,1,"e1265e4"],["vodca","Vodcă Exclusiv",1.0,40.0,215.0,1,"6b0f3903"],["alte","Absent Absinth",0.5,70.0,689.0,0,"b7c7528d"],["divin","Divin Pierre Monte 5 ani",0.5,40.0,129.0,1,"c68115"],["rom","Rom Negrita Spiced Gold",1.0,35.0,275.0,0,"5cb4ba7f"],["divin","Divin Cuza Voda 7 ani",0.5,40.0,215.0,1,"26747038"],["whisky","Whisky Sir Edward's Finest",0.7,40.0,189.0,0,"74754a87"],["vodca","Vodcă Exclusiv",0.5,40.0,125.0,1,"1aa7a7bb"],["divin","Divin Chateau Cojusna XO Alexander 7 ani",0.5,40.0,209.0,0,"e44778c7"],["rom","Rom Negrita White Signature",0.7,37.5,229.0,0,"97ed6017"],["divin","Divin Chateau Cojusna VSOP Alexander 5 ani",0.5,40.0,154.0,0,"f021f6ee"],["lichior","Lichior Merrys Irish Cream",0.7,17.0,249.0,0,"afd2d893"],["whisky","Set Whisky Johnnie Walker Black Label + 2 Pahare",0.7,40.0,795.0,1,"e1da1d4d"],["rom","Rom Negrita White Signature",1.0,37.5,275.0,0,"84b9f83"],["lichior","Balsam Nucata Domneasca",0.5,30.0,139.0,0,"6a38e8e"],["divin","Divin Château Cojușna Alexander XO, 10 ani",0.5,40.0,269.0,1,"17cbff61"],["lichior","Lichior Merrys Salted Caramel",0.7,17.0,249.0,0,"6e28311b"],["whisky","Whisky Sir Edward's 12 ani",0.7,40.0,599.0,0,"6f4c6ae0"],["rom","Tequila Lokita Reposado",0.7,40.0,955.0,0,"41f6d345"],["whisky","Whisky Sir Edward's Finest",1.0,40.0,249.0,0,"ebd3b513"],["whisky","Whisky Jack Daniel's Single Barrel",0.7,40.0,919.0,1,"43d792e4"],["whisky","Irish Whisky the Whistler Mosaic Marsala Cask",0.7,46.0,719.0,0,"5e9270ed"],["rom","Tequila Lokita Blanco",0.7,40.0,929.0,0,"6befbdd2"],["whisky","Whisky Cutty Sark 17 ani",0.7,42.3,1289.0,0,"d8427763"],["whisky","Whisky Scotch Auchentoshan Single Malt 12 ani",0.7,40.0,999.0,0,"fe64698a"],["gin","Gin Silks Irish",0.7,42.0,590.0,0,"1f03f121"],["divin","Brandy Bardinet VSOP",0.7,36.0,205.0,0,"f812be26"],["vodca","Vodcă Tito's Handmade",0.5,40.0,255.0,1,"90b2b769"],["whisky","Whisky Ballantine's Finest",0.7,40.0,359.0,1,"589dfb8"],["vodca","Vodcă Tito's Handmade",0.75,40.0,329.0,1,"82792267"],["divin","Brandy Saint Remy VSOP",0.7,40.0,299.0,1,"1db30a89"],["divin","Divin Noroc 20 ani Colecția de Aur în cutie suvenir",0.5,40.0,1919.0,1,"bac89452"],["divin","Divin Bardar Gold 12 ani XO",0.5,40.0,419.0,1,"c2c794c9"],["alte","Grappa Bottega Fiasco Chianti",0.5,38.0,359.0,0,"fd498a74"],["vodca","Vodcă Spicușor Clasic",0.5,40.0,93.9,1,"c72f9ae8"],["whisky","Whisky Monkey Shoulder",0.7,40.0,739.0,1,"9118bbf3"],["rom","Rom Bacardi Carta Negra",0.7,40.0,325.0,1,"f59b0475"],["divin","Coniac Rémy Martin VSOP, în cutie",0.7,40.0,1420.0,1,"63f0d03c"],["rom","Rom Negrita Dark Signature",0.7,37.5,229.0,0,"399695ee"],["rom","Tequila Sierra Reposado",0.7,38.0,287.0,1,"7cc81891"],["divin","Divin Bardar Silver 5 ani VSOP Cutie",0.5,40.0,139.0,1,"d1184eb9"],["whisky","Whisky J&b Rare",1.0,40.0,449.0,1,"f3cb5cdd"],["rom","Rom Negrita Dark Signature",1.0,37.5,275.0,0,"a6306a7a"],["vodca","Vodcă Hlebnaia",0.5,40.0,92.9,1,"5cab51c1"],["divin","Brandy Metaxa 5 Stars",0.7,40.0,299.0,1,"8ad51b01"],["whisky","Whiskey Jameson",0.7,40.0,429.0,1,"4d089dcd"],["divin","Divin Călărași Status Regal Luceafăr, 10 ani",0.5,40.0,355.0,1,"24aad525"],["rom","Tequila Sierra Silver",0.7,38.0,287.0,0,"55560152"],["lichior","Lichior de desert Vișinată Domnească",0.5,25.0,139.0,1,"207764ef"],["whisky","Whiskey Jameson",1.0,40.0,529.0,1,"d2ae6259"],["vodca","Vodcă Osobaia Secărică",0.5,40.0,92.9,1,"20682ea"],["divin","Divin Calarasi Aurum 7 ani XO",0.5,40.0,245.0,1,"b2c96a7c"],["divin","Divin Bardar Silver 3 ani VS",0.5,40.0,136.0,1,"2ab83ae8"],["lichior","Lichior de Desert Trandafirata Domneasca",0.5,17.0,139.0,0,"c64cc966"],["whisky","Whisky Highland Bird",1.0,40.0,199.0,0,"4d48446c"],["gin","Gin Lordson Dry",0.7,40.0,179.0,1,"56143dfb"],["divin","Divin Calarasi Aurum Luceafar 10 ani XO",0.5,40.0,319.0,1,"877852c1"],["gin","Gin Roku Japanese Craft",0.7,40.0,699.0,1,"3b3701fd"],["divin","Divin Kvint XO, 8 ani, sticlă Jazz, în cutie",0.5,40.0,239.0,1,"eb68c2ab"],["lichior","Lichior Cuerpo Mojito",0.7,15.0,145.0,0,"f206c26a"],["vodca","Vodcă Vozduh Ice",0.5,40.0,105.0,1,"1e4f7b13"],["rom","ROM Angostura Premium 7 ani",0.7,40.0,669.0,1,"f4ba1609"],["vodca","Vodcă Morosha Sinevir",0.5,40.0,109.0,1,"e9eebb27"],["divin","Divin Bardar Gold XO, 10 ani",0.5,40.0,332.0,1,"78f64498"],["whisky","Whisky Teacher's Highland Cream",1.0,40.0,399.0,0,"54949dda"],["lichior","Set Lichior Vecchio Amaro del Capo Riserva + 2PH",0.7,37.5,1345.0,0,"11eeedeb"],["lichior","Lichior de Kuyper Pina Colada",0.7,25.0,224.0,1,"5627221a"],["divin","Divin Calarasi Aurum 5 ani VSOP",0.5,40.0,169.0,1,"d131842c"],["divin","Divin Bardar Silver XO, 7 ani",0.5,40.0,215.0,1,"3873b472"],["rom","Tequila Agavita Blanco",0.7,38.0,269.0,1,"9176ac19"],["whisky","Whisky J&b",0.7,40.0,319.0,1,"2d187e50"],["lichior","Lichior de Desert Grunner",0.5,36.0,135.0,0,"d4dc35e4"],["lichior","Set Lichior Vecchio Amaro del Capo + 2PH",0.7,35.0,445.0,0,"2f114b6f"],["rom","Tequila Agavita Gold",0.7,38.0,269.0,0,"e4d1d0af"],["lichior","Lichior Vecchio Amaro del Capo Red Hot Edition",0.7,35.0,425.0,0,"5fa3bb7"],["lichior","Lichior Perfect Ciocolata",0.75,25.0,104.9,1,"9efaf07e"],["lichior","Lichior Vecchio Amaro del Capo",1.0,35.0,445.0,0,"9b10c5ae"],["divin","Divin Kvint Legion XO, 10 ani",0.5,40.0,299.0,1,"8e786d8d"],["whisky","Irish Whisky the Whistler Rye Doppelbock",0.7,43.0,729.0,0,"4a4ac943"],["divin","Divin Kvint Legion, 7 ani",0.5,40.0,219.0,1,"53142459"],["alte","Rachiu Nimorinka de Caise",0.7,39.0,299.0,0,"b28ea2d6"],["whisky","Whisky The Macallan Double Cask, 12 ani",0.7,40.0,1620.0,1,"ecdd997c"],["whisky","Whisky Togouchi Single Malt",0.7,43.0,1399.0,0,"9cc1321c"],["lichior","Lichior Vecchio Amaro del Capo",0.7,35.0,325.0,0,"4b63a3a"],["divin","Divin Autentic XO 7 ani Cutie",0.5,40.0,249.0,0,"feec01f1"],["vodca","Vodcă Zernoff Persona",1.0,40.0,165.0,1,"a5d8349d"],["whisky","Set cadou whisky Akashi Meisei Blended, + 2 pahare ceramice",0.5,40.0,989.0,1,"d0e042a8"],["divin","Divin Autentic XO 10 ani Cutie",0.5,40.0,304.0,0,"4fa1ebda"],["vodca","Vodcă Zernoff Persona",0.5,40.0,93.9,1,"d470aa25"],["alte","Rachiu Nimorinka de Pere",0.7,39.0,305.0,0,"58b2f7a7"],["gin","Gin Drumshanbo Gunpowder Irish",0.7,43.0,629.0,0,"90af3c25"],["gin","Gin Drumshanbo Gunpowder Irish California Orange",0.7,43.0,629.0,0,"c943b889"],["whisky","Whisky Ballantine's 7 Bourbon Finish",0.7,40.0,459.0,0,"4ec409ce"],["gin","Gin Drumshanbo Gunpowder Irish Sardinian Citrus",0.7,43.0,629.0,0,"3215c86d"],["gin","Gin Drumshanbo Gunpowder Irish Brazilian Pineapple",0.7,43.0,629.0,0,"f4b758bf"],["whisky","Whisky Togouchi 15 ani",0.7,43.8,2999.0,0,"e57d795b"],["divin","Divin Legenda Moldovei Premium 15 ani",0.5,40.0,465.0,1,"19e4fed3"],["vodca","Vodcă Zernoff Mendeleev",0.7,40.0,165.0,1,"9c7a80c"],["divin","Divin Kvint Legion, 5 ani",0.5,40.0,159.0,1,"11312324"],["whisky","Whisky Evade Single Malt",0.7,40.0,799.0,0,"19ac694e"],["vodca","Vodcă Zernoff Original",0.7,40.0,142.0,1,"3e8f18a8"],["alte","Rachiu Tezaur Chardonnay",0.5,40.0,137.0,1,"5050c8ae"],["lichior","Lichior Zucca Rabarbaro",0.7,30.0,375.0,0,"7e279289"],["alte","Rachiu Tezaur Sauvignon",0.5,40.0,137.0,1,"1f65a328"],["alte","Tuica Nimorinka de Prune",0.5,40.0,115.0,1,"af1d8b4"],["gin","Gin Drumshanbo Gunpowder Irish Italian Fig and Laurel",0.7,43.0,629.0,0,"7130f872"],["gin","Gin Bombay Sapphire",1.0,40.0,645.0,1,"25194d53"],["whisky","Blended Scotch Whisky Cutty Sark",0.5,40.0,203.9,1,"c5517c98"],["divin","Divin Kvint ( 3 Ani) Kosher",0.5,40.0,229.0,1,"24b36098"],["divin","Divin Bardar Silver VSOP, 5 ani",0.5,40.0,99.99,1,"b6bc34e1"],["gin","Gin Hendrick's",0.7,40.0,753.0,1,"a4708837"],["alte","Tuica Nimorinka de Prune Macerat",0.5,40.0,119.0,1,"2bc3ea4"],["whisky","Blended Scotch Whisky Cutty Sark",0.7,40.0,259.0,1,"2b5f1db4"],["divin","Divin Kvint Kosher, 5 ani, sticlă Dream",0.5,40.0,249.0,1,"e6d304eb"],["divin","Divin Bardar Platinum, 15 ani",0.5,40.0,1099.0,1,"dd9f82f5"],["alte","Rachiu Nimorinka de Piersici Macerat",0.5,40.0,119.0,1,"d7619779"],["whisky","Whisky William Grants +2 Glass",0.7,40.0,415.0,1,"9231e63b"],["whisky","Whiskey Jack Daniel's Old No. 7",0.7,40.0,417.0,1,"3c4cfedb"],["rom","Rom Angostura 1919 Premium",0.7,40.0,879.0,0,"9852f0ca"],["vodca","Vodcă Zernoff Russkaia",1.0,40.0,164.0,1,"7bab2db9"],["gin","Gin Lordson Capsuna",0.7,37.5,185.0,0,"7817ac3c"],["whisky","Whisky Wilson, 3 ani",0.7,40.0,179.0,1,"b65a28e1"],["lichior","Lichior Sheridan's",0.7,17.0,419.0,1,"6e5637d9"],["vodca","Vodcă Pierre Monte Black",1.0,40.0,251.0,1,"b1037202"],["whisky","Whisky Aberlour, 12 ani",0.7,40.0,1200.0,1,"f077a82c"],["vodca","Vodcă Pierre Monte Silver",1.0,40.0,251.0,1,"1903303d"],["rom","Tequila Jose Cuervo Reposado",0.7,38.0,349.0,1,"70d11cb6"],["rom","Tequila Jose Cuervo Reposado Traditional",0.7,38.0,529.0,1,"2faabc32"],["rom","Tequila Jose Cuervo Silver",0.7,38.0,349.0,1,"405286fb"],["whisky","Whisky Royal Salute, 21 de ani",0.7,40.0,3990.0,1,"82205bd9"],["gin","Gin Gordon's Pink",0.7,40.0,305.0,1,"85920572"],["lichior","Lichior Pure Divine Cotton Candy",0.5,25.0,129.0,1,"3dfa3ca1"],["lichior","Balsam Cosmic Buket Moldavii Cutie",0.25,45.0,319.0,0,"ea6df9b"],["lichior","Lichior Pure Divine Caramel",0.5,25.0,129.0,1,"25dc175b"],["lichior","Liqueur Marie Brizard Cacao Brun",0.7,20.0,199.0,0,"66cfcafc"],["rom","Rum Captain Morgan White",1.0,40.0,358.0,1,"fe03ae05"],["lichior","Lichior Pure Divine Ginger Mule",0.5,25.0,129.0,1,"feae80ba"],["lichior","Spirit Drink Marie Brizard Espresso Martini",0.7,14.9,199.0,0,"367989d5"],["rom","Rom Angostura Rezerva White 3 ani",0.7,40.0,299.0,1,"c2280528"],["gin","Gin Thomas Shackley Ștof",0.5,40.0,139.0,1,"b0197c52"],["lichior","Lichior Pure Divine Espresso Martini",0.5,25.0,129.0,1,"190c4735"],["lichior","Liqueur Marie Brizard Pamplemousse Rose",0.7,15.0,229.0,0,"802c8d0f"],["rom","Rom Angostura Superior Gold 5 ani",0.7,40.0,370.0,1,"1f9af340"],["vodca","Vodcă Zernoff Petrovskaia Premium Platinum",1.0,40.0,219.0,1,"41014904"],["lichior","Liqueur Marie Brizard Apry",0.7,20.5,239.0,0,"9f8deb9b"],["whisky","Whisky Jameson Stout Edition",0.7,40.0,559.0,1,"30f77522"],["divin","Divin Kvint Jubilee, 5 ani, sticlă Suvenir",0.5,40.0,145.0,1,"c9111c5"],["divin","Divin Cuza Voda 5 ani Biografie",0.5,40.0,169.0,1,"8b279c30"],["divin","Divin Kvint ( 6 Ani) VSOP",0.5,40.0,199.0,1,"96168c54"],["whisky","Whisky Old Cask",0.5,40.0,119.0,1,"74bff3ee"],["divin","Divin Cuza Vodă Biografie, 7 ani",0.5,40.0,245.0,1,"71e4e509"],["divin","Brandy Ararat, 5 ani",0.5,40.0,409.0,1,"12cca086"],["divin","Divin Cuza Voda 10 ani Biografie",0.5,40.0,299.0,0,"5027ae9c"],["divin","Divin Tuzara 5 ani VSOP Ember",0.5,40.0,132.0,1,"e1f1b397"],["divin","Divin 3 ani Premier",0.5,40.0,139.0,1,"56264786"],["divin","Divin Maestro Reserva X.O. 7 ani",0.7,40.0,509.0,1,"e20fb0ed"],["whisky","Whisky Glenwood",0.7,40.0,195.0,1,"8a1f32bf"],["divin","Divin Akademos XO, 7 ani",0.5,40.0,229.0,1,"b88dcaa6"],["divin","Divin 5 ani Premier",0.5,40.0,149.0,1,"74dc9374"],["whisky","Whisky Glenwood Bourbon Style",0.7,40.0,195.0,1,"3421af62"],["gin","Gin Drumshanbo Gunpowder Irish Year of the Horse Ceramic",0.7,43.0,729.0,0,"314de15"],["divin","Băutură tare de colecție Akademos, 25 de ani",0.7,40.0,949.0,1,"e8d583e9"],["lichior","Lichior Gas Familia Bushjagers",0.7,35.0,195.0,0,"45abf159"],["gin","Gin Drumshanbo Gunpowder Irish",1.0,43.0,839.0,0,"f09c3b1"],["divin","Bautura Tare Perfect Gold",0.5,40.0,93.9,0,"13932599"],["divin","Divin Maestro VSOP, 5 ani",0.5,40.0,159.0,1,"1185c128"],["gin","Set Gin Drumshanbo Gunpowder Irish +1ph",0.7,43.0,729.0,0,"239341fb"],["vodca","Vodcă Zernoff Petrovskaia",1.0,40.0,195.0,1,"44452f29"],["divin","Divin Kvint ( 3 Ani) Ploscă",0.2,40.0,74.9,1,"e3c051fe"],["gin","Set Gin Drumshanbo Gunpowder Irish Whith Sardinian Citrus +1ph",0.7,43.0,729.0,0,"943e24c9"],["rom","Rom Aguacana Cachaca",0.7,37.5,259.0,0,"43c568b0"],["vodca","Vodcă Zernoff Petrovskaia",0.5,40.0,111.0,1,"35edb191"],["divin","Divin Kvint, 5 ani, sticlă Dream",0.5,40.0,134.0,1,"c906383a"],["whisky","Whisky Gas Familia Nestville",0.7,40.0,285.0,0,"574c1749"],["rom","Rom Tierra Madre",0.7,40.0,559.0,0,"ac320a3f"],["divin","Divin Kvint, 5 ani, sticlă Conus",0.5,40.0,127.0,1,"f494c9d"],["rom","Rom Yellow Snake",0.7,40.0,559.0,0,"9c6452cc"],["whisky","Whisky the Famous Grouse",1.0,40.0,385.0,1,"2b6c29cf"],["vodca","Vodcă Nemiroff De Luxe",1.0,40.0,299.0,1,"2d842ad"],["whisky","Whiskey Drumshanbo Single Malt Irish Galanta",0.7,46.0,1519.0,0,"f467b729"],["divin","Divin Kvint 5 ani VSOP",0.2,40.0,74.9,1,"7feccb07"],["whisky","Whisky the Famous Grouse",0.7,40.0,282.0,1,"b4cad65b"],["whisky","Whiskey Drumshanbo Single Pot Still Irish",0.7,43.0,979.0,0,"235dc564"],["divin","Divin Calarasi Figurini Automobil 5 ani",0.5,40.0,569.0,1,"bf03eb95"],["vodca","Vodcă Morosha Spring",1.0,40.0,179.0,1,"88c58da4"],["lichior","Lichior Baileys",0.7,17.0,321.0,1,"6ccd4cc3"],["vodca","Vodcă Morosha Carpathian",1.0,40.0,179.0,1,"59e895d1"],["divin","Divin Kvint ( 6 Ani)",0.5,40.0,165.0,1,"9dea4f58"],["vodca","Vodcă Khortytsa Silver Cool",0.1,40.0,24.9,1,"c342949c"],["vodca","Vodcă Khortytsa Ice",1.0,40.0,209.0,1,"39a5708d"],["divin","Divin Kvint Tiras, 6 ani, sticlă Conus",0.5,40.0,169.0,1,"3b513a4a"],["vodca","Vodcă Khortytsa Premium",1.0,40.0,199.0,1,"d45bc5be"],["whisky","Whisky William Grant's Fam Reserve",0.7,40.0,309.0,1,"cf4873d3"],["divin","Divin Château Vartely VSOP, 5 ani",0.5,40.0,155.0,1,"29799552"],["whisky","Whisky Kilbrin",0.7,40.0,369.0,0,"87a8a05c"],["gin","Gin Electio",0.75,45.0,339.0,0,"9795536a"],["vodca","Vodcă Taiga Earth",0.5,40.0,108.9,1,"71dbc08"],["vodca","Vodcă Nemiroff Original",0.7,40.0,162.0,1,"4f8132b0"],["lichior","Lichior San Martino Amaretto",0.7,28.0,149.0,0,"3cf98a79"],["lichior","Lichior San Martino Limoncello",0.7,21.0,149.0,0,"7abe806e"],["vodca","Vodcă Zernoff Mendeleev",0.5,40.0,130.0,1,"e7c9c920"],["divin","Divin Kvint Nistru, 8 ani, sticlă Conus",0.5,40.0,219.0,1,"76eea5b0"],["lichior","Lichior San Martino Cherry Amore",0.7,21.0,149.0,0,"7bf08dba"],["lichior","Lichior Jägermeister",0.5,35.0,219.0,1,"c6ea78b8"],["lichior","Lichior Vecchio Amaro del Capo Cutie",3.0,35.0,2550.0,0,"cf77135e"],["divin","Divin Kvint Doina, 9 ani, sticlă Conus",0.5,40.0,239.0,1,"a5be3245"],["whisky","Whisky Teacher's Highland Cream",0.7,40.0,289.0,1,"cb32624e"],["whisky","Whisky Jim Beam White Bourbon",0.5,40.0,269.0,0,"7adfa669"],["lichior","Lichior Jägermeister",1.0,35.0,363.0,1,"b742e600"],["vodca","Vodcă Kumaniok Beriozovaia",0.5,40.0,89.9,1,"13fee93f"],["whisky","Set 1 Sticla Whisky Jim Beam White Bourbon +1pahar",0.7,40.0,389.0,0,"f9d9ffd6"],["whisky","Whisky Bowmore 12 ani Cutie",0.7,40.0,999.0,0,"2db8ce36"],["divin","Divin Akademos 5 ani",0.5,40.0,149.0,1,"27797643"],["divin","Divin Cuza Voda Premium 15 ani Cutie",0.5,40.0,785.0,0,"45afa1da"],["whisky","Whisky Bowmore 15 ani Cutie",0.7,43.0,2099.0,0,"50cbc86e"],["divin","DIVIN KVINT (10 ani) în cutie",0.5,40.0,299.0,1,"fca52007"],["vodca","Vodcă Nemiroff De Luxe",0.5,40.0,162.0,1,"7370dc15"],["divin","Divin Calarasi Figurini Calut 5 ani",0.5,40.0,569.0,1,"e96bd1e4"],["whisky","Whisky Basil Hayden",0.7,40.0,1199.0,0,"7e0e45dc"],["divin","Divin Kvint Jubilee, 3 ani, sticlă Suvenir",0.5,40.0,119.0,1,"faac1403"],["whisky","Whisky Jack Daniel’s Honey",0.7,35.0,417.0,1,"155cb650"],["vodca","Vodcă Kumaniok Psenicinaia",0.5,40.0,89.9,1,"33ccca43"],["whisky","Whisky Jack Daniel’s Honey",1.0,35.0,609.0,1,"8afa49c4"],["vodca","Vodcă Zernoff Silver",1.0,40.0,209.0,1,"20e3951"],["lichior","Lichior Monkey 47 Schwarzwald Sloe Gin",0.5,29.0,889.0,0,"5f56c022"],["divin","Divin Kvint XO, 10 ani, sticlă Jazz",0.5,40.0,249.0,1,"e1a1a41"],["lichior","Lichior Duval Pastis",0.7,45.0,249.0,0,"334cd510"],["divin","Divin Călărași Status Regal, 12 ani",0.5,40.0,419.0,1,"d28d2c0f"],["gin","Gin Beefeater Blood Orange",0.7,37.5,399.0,0,"d36f3776"],["lichior","Lichior Jägermeister",1.75,35.0,688.0,1,"cb47ff8f"],["divin","Divin Kvint VSOP, 5 ani, sticlă Jazz",0.5,40.0,134.0,1,"755abbe1"],["vodca","Vodcă Kumaniok Original",0.5,40.0,89.9,1,"f5d2518d"],["divin","Divin Calarasi Status Regal 8 ani",0.5,40.0,319.0,1,"81a421cb"],["gin","Gin Monkey 47 Schwarzwald Dry Gin",0.5,47.0,925.0,0,"ba846b4a"],["divin","Divin Kvint XO, 8 ani, sticlă Jazz",0.5,40.0,199.0,1,"63b8cb40"],["divin","Divin Călărași Legenda, 7 ani",0.5,40.0,225.0,1,"65cd35cf"],["vodca","Vodcă Zernoff Original",1.0,40.0,209.0,1,"a129e73c"],["divin","Divin Kvint VSOP, 6 ani, sticlă Jazz",0.5,40.0,169.0,1,"9fdc6683"],["vin","Vin JP. Chenet Reserve Pinot Noir Rosu Sec",0.75,12.5,129.0,0,"19fbfa33"],["vin","Vin Alb Sec Chartron et Trebuchet Bourgogne Aligote",0.75,12.0,290.0,0,"e759ec2f"],["vin","Vin Alb Sec Chartron et Trebuchet Bourgogne Chardonnay",0.75,12.5,530.0,1,"6ba9e398"],["vin","Vin Alb Sec Chartron et Trebuchet Chablis",0.75,12.5,470.0,1,"1e28ecdc"],["vin","Vin Alb Sec Chartron et Trebuchet Saint Veran",0.75,12.5,490.0,1,"6731577b"],["vin","Vin Carlevana Raritet Cuvee Blanc Alb Sec",0.75,12.5,139.0,1,"edb01741"],["vin","Vin Alb Sec Kia Ora Sauvignon Vis",0.75,12.5,199.0,1,"be84d3f0"],["vin","Vin Feteasca Neagra & Merlot & Pinot Noir Ampre Roz Sec",0.75,12.5,114.0,1,"f82176a6"],["vin","Vin Rădăcini Ampre Rară Neagră & Merlot & Saperavi, sec, roșu",0.75,12.5,114.0,1,"1f10246f"],["vin","Vin Saperavi & Feteasca Neagra & Merlot Ampre Rosu Sec",0.75,12.5,114.0,1,"cfc41ef"],["vin","Vin Viorica & Riesling & Chardonnay Ampre Alb Sec",0.75,12.5,114.0,1,"86bcc191"],["vin","Vin Feteasca Alba Fiori Alb Sec",0.75,12.5,99.99,1,"ed2d67be"],["vin","Vin Viorica Fiori Alb Sec",0.75,12.5,99.99,1,"a6c761b6"],["vin","Vin Feteasca Neagra Fiori Rosu Sec",0.75,12.5,99.99,1,"c78c70ff"],["vin","Vin Feteasca Neagra & Syrah Fiori Rosu Sec",0.75,12.5,99.99,1,"f9283586"],["vin","Vin Fortificat Carlevana Colectie Port Mereni 2005 Rosu Dulce",0.75,19.5,949.0,1,"810014a"],["vin","Vin Carlevana Kosher Pinot Noir Rosu Sec",0.75,12.5,139.0,1,"6ef5c891"],["vin","Vin Carlevana Kosher Merlot Rosu Sec",0.75,12.5,139.0,1,"643455ed"],["vin","Vin Carlevana Kosher Malbec Merlot Rosu Sec",0.75,12.5,479.0,1,"2ab240c2"],["vin","Vin Carlevana Kosher Cabernet Sauvignon Rosu Sec",0.75,12.5,139.0,1,"fbef34c"],["vin","Vin Poiana Sauvignon Blanc",0.75,12.5,235.0,1,"ad3f988b"],["vin","Vin Vinaria din Vale 7 Coline Cabernet Sauvignon & Merlot, sec, roșu",0.75,12.5,136.0,1,"c4d8d6fb"],["vin","Vin Vinaria din Vale 7 Coline Viorica & Bianca, sec, alb",0.75,12.5,136.0,1,"53d9022e"],["vin","Vin Castel Mimi 9MUSES Sauvignon Blanc Alb Sec",0.75,12.5,105.0,1,"50e4d068"],["vin","Vin Castel Mimi 9MUSES Merlot Rose Roz Sec",0.75,12.5,105.0,1,"f8bf4a31"],["vin","Vin Castel Mimi 9MUSES Cabernet Sauvignon Rosu Sec",0.75,12.5,105.0,1,"c14a6a7c"],["vin","Vin Vinuri de Comrat Folclor Fetească Neagră, sec, roșu",0.75,12.5,85.9,1,"91a57bfb"],["vin","Vin Carlevana Colectie Black Raven Cabernet Sauvignon 2002 Rosu Sec",0.75,12.5,949.0,1,"72f46b8c"],["vin","Vin Poiana Feteasca Alba & Feteasca Regala",0.75,12.5,235.0,1,"6450e84f"],["vin","Vin Radacini Reserve Cabernet Sauvignon Merlot Syraz Rosu Sec",0.75,12.5,247.0,1,"3d61fa68"],["vin","Vin Radacini Reserve Chardonnay Pinot Grigio Alb Sec",0.75,12.5,247.0,1,"1e295afb"],["vin","Vin Radacini Reserve Pinot Noir Rosu Sec",0.75,12.5,247.0,1,"acb49929"],["vin","Vin Radacini Vintage Cabernet Sauvignon Merlot Rosu Sec",0.75,12.5,165.0,1,"a7e6a0f9"],["vin","Vin Radacini Vintage Pinot Noir Rosu Sec",0.75,12.5,165.0,1,"7bba9bf2"],["vin","Vin Radacini Vintage Chardonnay Alb Sec",0.75,12.5,165.0,1,"e192fc83"],["vin","Vin JP. Chenet Reserve Chardonnay Viognier Alb Sec",0.75,13.0,129.0,0,"c3669e2d"],["vin","Vin Carlevana Colectie Pantera Malbec 2020 Rosu Sec",0.75,12.5,749.0,1,"4e569c0c"],["vin","Vin Carlevana Aleasa Dulce Muscat Ottonel",0.5,14.0,299.0,0,"5e833a74"],["vin","Vin Carlevana Aleasa Dulce Sauvignon Blanc",0.5,10.0,299.0,0,"3e5fa855"],["vin","Vin Carlevana Brumariu Alb Dulce",0.35,11.0,550.0,1,"fb5faeca"],["vin","Vin Carlevana Colectie Lupu Cabernet Sauvignon 2003 Rosu Sec",0.75,12.5,899.0,1,"5eeecd78"],["vin","Vin Carlevana Colectie Bufnita Cabernet Sauvignon 2005 Rosu Sec",0.75,11.0,799.0,0,"6e9e425a"],["vin","Vin J.P. Chenet Cabernet Syrah IGP, sec, roșu",0.75,12.5,119.0,1,"f68915dc"],["vin","Vin Purcari Sapiens Cabernet Sauvignon, sec, roșu",0.75,12.5,239.0,1,"5dac18b1"],["vin","Vin Radacini Basic Pinot Grigio Alb Sec",0.75,12.5,92.9,1,"e3d4b908"],["vin","Vermut Buket Moldavii Rosu Dulce",0.75,16.0,135.0,0,"30a442eb"],["vin","Vermut Buket Moldavii Rose",0.75,15.0,135.0,1,"631b372f"],["vin","Vermut Buket Moldavii Alb Dulce",0.75,16.0,135.0,0,"e04a203b"],["vin","Vin Salcuta Eno Tamiioasa Roz Sec",0.75,12.5,148.0,1,"7eafe0ac"],["vin","Vin Carlevana Kosher Riesling de Rhein Alb Sec",0.75,12.5,179.0,0,"8762f3e4"],["vin","Vin Domeniile Davidescu Viorica & Pinot Grigio, sec, alb",0.75,12.5,111.0,1,"8081d9d4"],["vin","Vin Domeniile Davidescu Sauvignon&chardonnay Alb Sec",0.75,12.5,111.0,1,"b010f7b5"],["vin","Vin licoros Tomai Pastoral Premium, roșu",0.75,16.0,105.0,1,"5a3cd647"],["vin","Vin Buket Moldavii Alb",1.0,12.5,149.0,1,"e6730a4c"],["vin","Vin de Tomai Cabernet, sec, roșu",0.75,12.5,98.9,1,"b9a7b68a"],["vin","Vin de Tomai Negru, sec, roșu",0.75,12.5,98.9,1,"f99576d7"],["vin","Vin de Tomai Rose Sec",0.75,12.5,98.9,1,"94cd0842"],["vin","Vin Buket Moldavii Rosu",1.0,12.5,149.0,1,"275465f8"],["vin","Vin Cricova Or.subteran Feteasca Alba Sec",0.75,12.5,109.0,1,"c4bee009"],["vin","Vin Regina de Tomai, sec, alb",0.75,12.5,135.0,1,"f6a1e94e"],["vin","Vin de Tomai Chardonnay Alb Sec",0.75,12.5,98.9,1,"bd293bd2"],["vin","Vin Cricova Or.subteran Rara Neagra Rosu Sec",0.75,12.5,109.0,1,"fbc05a88"],["vin","Vin Regina de Tomai Negru, sec, roșu",0.75,12.5,135.0,1,"5c2eebe"],["vin","Vin Cricova Or.subteran Viorica Alb Sec",0.75,12.5,109.0,1,"781c4ded"],["vin","Vin Château Cristi Malbec & Saperavi, sec, roșu",0.75,12.5,268.0,1,"a699e3ea"],["vin","Vin de Tomai Saperavi, sec, roșu",0.75,12.5,98.9,1,"cf6636ba"],["vin","Vin Sauvignon de Tomai Alb Sec",0.75,12.5,98.9,1,"9276abc0"],["vin","Vin Bostavan Wine Crime Rose Sec",0.75,12.5,90.9,1,"d8ce25f0"],["vin","VIN Purcari Orange alb sec",0.75,12.5,175.0,1,"1a6eef02"],["vin","Vin Piatra Rosie Merlot/ancellotta/alicante Rosu Sec",0.75,12.5,172.0,1,"f33d21c3"],["vin","Vin Chateau Cristi Cuvee Rouge Royal Rosu Sec",0.75,12.5,268.0,1,"3318b53d"],["vin","Vin Rosu Sec Autentic Fet.neagra/caber.sauv",0.75,12.5,122.0,1,"c65834cc"],["vin","Vin Carlevana Renaissance Muscat Alb Dulce",0.75,12.5,85.9,1,"2f346270"],["vin","Vin Pata Negra Rioja Viura Blanco Alb",0.75,12.5,148.9,0,"fd085d48"],["vin","Vin Castel Mimi Feteasca Neagra Rosu Sec",0.75,12.5,145.0,1,"32267cae"],["vin","Vin Radacini Basic Cabernet Sauvignon Rosu Sec",0.75,12.5,92.9,1,"a24a23a"],["vin","Vin Bostavan Dor Reserve Merlot Rosu Sec",0.75,12.5,104.9,1,"b9c596f7"],["vin","Vin Migdal-p Cabernet Rosu Sec Carte",3.0,12.5,146.9,1,"65e22562"],["vin","Vin Vertical Pinot Noir Rose Demisec",0.75,12.5,80.9,1,"7afe528b"],["vin","Vin Kvint Chardonnay Alb Sec",0.75,12.5,94.9,0,"31a5f59"],["vin","Vermut Cinzano Rosso",1.0,15.0,229.0,1,"7bb408d9"],["vin","Vin Maurt Bacio di Bolle Choco Feteasca Neagra& Merlot Rosu Dulce",0.75,12.5,105.0,1,"22aa0031"],["vin","Vin Kvint Feteasca Neagra Rosu Sec",0.75,12.6,94.9,0,"5023f3df"],["vin","Vermut Cinzano Bianco",1.0,15.0,229.0,1,"9d4b4438"],["vin","Vin Kvint Cabernet Sauvignon Rosu Sec",0.75,12.6,94.9,0,"5480a658"],["vin","Vermut Cinzano Extra Dry",1.0,15.0,229.0,1,"e8d70a6a"],["vin","Vin Château Cristi Chardonnay Barrel Fermented 2019, sec, alb",0.75,12.5,268.0,1,"c8d8f114"],["vin","Vin Kvint Irsai Oliver Alb Demidulce",0.75,12.1,94.9,0,"b7fc156e"],["vin","Vin Castel Mimi Viorica de Bulboaca, demisec, alb",0.75,12.5,189.0,1,"460980ca"],["vin","Vin Castel Mimi Simbol Pinot Noir Saperavi Rara Neagra Rosu Sec",0.75,12.5,71.99,1,"d34176ad"],["vin","Vin Mi Piace Rose Sec",0.75,12.5,79.9,1,"48cf760c"],["vin","Vin Cricova Editie Limitata Cabernet Sauvignon Alb Sec",0.75,12.5,151.0,1,"c8dbf274"],["vin","Vin Castel Mimi Frati Rosu Sec",0.75,12.5,145.0,1,"1f9b32c0"],["vin","Vin Castel Mimi Simbol Pinot Noir Saperavi Rara Neagra Rose Roz Sec",0.75,12.5,71.99,1,"7b19b5c2"],["vin","Vin Castel Mimi Simbol Feteasca Alba Alb Sec",0.75,12.5,71.99,1,"68daddd7"],["vin","Vin Kazayak Feteasca Neagra Rosu Sec",0.75,12.5,89.9,1,"f6d1ad4"],["vin","Vin Carlevana Renaissance Chardonnay Alb Sec",0.75,12.5,85.9,1,"fed3f846"],["vin","Vin Aurelius Vinografia Feteasca Neagra&rara Neagra&ancellotta Sec Rosu",0.75,12.5,244.0,1,"9f167967"],["vin","Vin Rosu Sec Caber.sauv/rara.neagra Primul Vis",0.75,12.5,242.0,1,"478a4166"],["vin","Vin Salcuta Valverde Merlot Rosu Sec",0.75,12.5,63.59,1,"330dc00b"],["vin","Vin Purcari Pinot Grigio de Purcari, sec, alb",0.75,12.5,165.0,1,"3a3f748a"],["vin","Vin Salcuta Valverde Pinot Noir Rosu Sec",0.75,12.5,63.59,1,"90a99283"],["vin","Vin Bostavan Chardonnay Alb",0.75,12.5,64.9,1,"6a47a9d2"],["vin","Vin Salcuta Eno Viorica Muscat Ottonel Alb Sec",0.75,12.5,103.0,1,"698ebd70"],["vin","Vin Bostavan Dor Feteasca Neagra/pinot Noir Rosu Sec",0.75,12.5,89.5,1,"291b8d11"],["vin","Vin Domeniile Davidescu Cabernet Sauvignon/feteasca Neagra Rosu Sec",0.75,12.5,111.0,1,"2b485c84"],["vin","Vin Rose Sec Cabernet Sauvignon I",0.75,12.5,158.0,1,"ca3a894b"],["vin","Vin Carlevana Renaissance Cabernet Sauvignon Rosu Sec",0.75,12.5,85.9,1,"f554b3af"],["vin","Vin Domeniile Davidescu Rara Neagra Roz Sec",0.75,12.5,111.0,1,"edb3a72b"],["vin","Vin Timbrus Cabernet Sauvignon Merlot Rose Sec",0.75,12.5,105.0,1,"61de95a7"],["vin","Vin Imperial Reserve Amfora Cabernet Sauvignon Rosu Sec",0.75,12.5,123.0,1,"395487fa"],["vin","Vin Carlevana Renaissance Cabernet Sauvignon Rose Sec",0.75,12.5,85.9,1,"5994f1de"],["vin","Vin JP. Chenet Chardonnay Alb Sec",0.75,13.0,119.0,0,"4e7df980"],["vin","Vin Imperial Grape Angel Cabernet/feteasca Rosu Sec",0.75,12.5,131.0,1,"75eb8377"],["vin","Vin Vinuri de Comrat Rose Blazon Roz D/dulce",0.75,12.5,59.99,1,"9cf6a256"],["vin","Vin Carlevana Renaissance Merlot Rosu Sec",0.75,12.5,85.9,1,"6f9ee45b"],["vin","Vin JP. Chenet Sauvignon Blanc Alb Sec",0.75,12.0,119.0,0,"5443cc3e"],["vin","Vin Timbrus Viorica Muscat Ottonel Alb Sec",0.75,12.5,109.0,1,"6da86d02"],["vin","Vin Imperial Grape Angel Pinot Gris Alb Sec",0.75,12.5,115.0,1,"f652bbfc"],["vin","Vin Carlevana Renaissance Pinot Noir, sec, roșu",0.75,12.5,85.9,1,"a4ab0beb"],["vin","Vin Carlevana Mereni Alexandr Nevskii Rosu Sec",0.75,12.5,75.9,1,"a81b7482"],["vin","Vin Timbrus Chardonnay Alb Sec",0.75,12.5,105.0,1,"cc5a3836"],["vin","Vin Imperial Maestro Cabernet Sauvignon, sec, roșu",0.75,12.5,155.0,1,"afd1f3bd"],["vin","Vin Purcari Freedom Blend, sec, roșu",0.75,12.5,229.0,1,"a0c9684d"],["vin","Vin Lob Envie Cabernet Sauvignon Rosu Sec",0.75,12.5,146.9,1,"ea4ddd9a"],["vin","Vin Carlevana Mereni Bunavointa Rosu Sec",0.75,12.5,75.9,1,"caebb99e"],["vin","Vin Timbrus Shiraz Malbec Rara Neagra Rosu Sec",0.75,12.5,130.0,1,"f11a0f7b"],["vin","Vin Imperial Maestro Merlot Rosu Sec",0.75,12.5,155.0,1,"f5c5f22b"],["vin","Vin Carlevana Renaissance Sauvignon Blanc Alb Sec",0.75,12.5,85.9,1,"fd423538"],["vin","Vin Lob Virginette Merlot Rosu Sec",0.75,12.5,147.0,1,"ff99a6d7"],["vin","Vin Carlevana Mereni Curtea Manastirii Rosu Sec",0.75,12.5,75.9,1,"5e29540f"],["vin","Vin Ungheni Bridge Muscat Ottonel Alb Sec",0.75,12.5,78.9,1,"3267912a"],["vin","Vin Salcuta Eno Feteasca Regala Sauvignon Blanc Alb Sec",0.75,12.5,103.0,1,"5d970dd1"],["vin","Vin Carlevana Mereni Maiestatea Sa Rosu Sec",0.75,12.5,75.9,1,"70103437"],["vin","Vin Carlevana Mereni Nicolai Tschudotworetz Rosu Sec",0.75,12.5,75.9,1,"5d320715"],["vin","Vin Impresario Feteasca Regala Aligote Alb Sec",0.75,12.5,111.0,1,"c5a22f9b"],["vin","Vin Hunting Season Nr.4 Sec Alb",0.75,12.5,89.9,1,"d312eae2"],["vin","Vin Barriquello Pinot Grigio Sauvignon Blanc Alb Sec",0.75,12.5,130.0,1,"986e272a"],["vin","Vin Lob Plesso Merlot, Cabernet Sauvignon Rosu Sec",0.75,12.5,147.0,1,"4aabc92e"],["vin","Sake Misen ABV Cutie",0.72,15.4,619.0,0,"41eeb562"],["vin","Vin Barriquello Pinot Noir Rosu Sec",0.75,12.5,130.0,1,"1e573975"],["vin","Vin Ungheni Bridge Chardonnay Alb Sec",0.75,12.5,78.9,1,"781c0fdd"],["vin","Vin Las Ninas Ella Rezerva Cabernet Rosu Sec",0.75,14.0,199.0,0,"548dd850"],["vin","Vin JP. Chenet Grenache Cinsault Rose Sec",0.75,12.0,119.0,0,"7bc2a41e"],["vin","Vin Ungheni Bridge Feteasca Alba Alb Sec",0.75,12.5,78.9,1,"3ca2522f"],["vin","Vin Las Ninas Ella Rezerva Carmenere Rosu Sec",0.75,13.0,199.0,0,"82370d14"],["vin","Vin Ungheni Bridge Pinot Gris Alb Sec",0.75,12.5,78.9,1,"9c8372e0"],["vin","Vin Las Ninas Ella Rezerva Sauvignon Blanc Sec",0.75,13.0,199.0,0,"de2267e1"],["vin","Vin Apriori Sauvignon Blanc Alb Sec",0.75,12.5,86.9,1,"f0f14dcf"],["vin","Vin Cecchi Sangiovese di Toscana Igt Rosu Sec",0.75,13.0,193.0,0,"488a068d"],["vin","Vin Kloster Eberbach Riesling Feinherb Alb Demisec",0.75,11.5,299.0,0,"e0e2b456"],["vin","Vin Apriori Merlot Rose D/sec",0.75,12.5,86.9,1,"1b1c00dd"],["vin","Vin Cecchi Chianti Riserva DOCG Rosu Sec",0.75,13.0,223.0,0,"357bf450"],["vin","Vin Ungheni Bridge Feteasca Neagra Rosu Sec",0.75,12.5,78.9,1,"170e36a0"],["vin","Vin Kloster Eberbach Riesling Trocken Rheingau Alb Demisec",0.75,11.5,299.0,0,"237aac3"],["spumant","Vin Apriori Muscat Frizzante Alb Dulce",0.75,7.0,86.9,0,"bfc3c39"],["vin","Vin Cecchi Chianti DOCG Rosu Sec",0.75,13.0,193.0,0,"75174755"],["vin","Vin Ungheni Bridge Cabernet Rosu Sec",0.75,12.5,78.9,1,"f6f893ee"],["vin","Vin 770 Miles Chardonnay California Alb Sec",0.75,13.0,149.0,0,"af3865f2"],["vin","Vin Ungheni Bridge Sauvignon Alb Sec",0.75,12.5,78.9,1,"e60f230"],["vin","Vin Carnivor Zinfandel California Rosu",0.75,14.5,299.0,0,"94f35687"],["vin","Vin Teliani Valley Kindzmarauli Rosu Demidulce",0.75,11.5,209.0,0,"69cb9612"],["vin","Vermut Martini Bianco",1.0,15.0,268.0,1,"d7c659e4"],["vin","Vin Teliani Valley Ikalto Saperavi Unfiltered Rosu Sec",0.75,13.5,279.0,0,"9d9ce28e"],["vin","Vin Alb Sec Vinaria Din Vale 7 Coline Feteasca Alba/traminer",0.75,12.5,136.0,1,"1a27a00c"],["vin","Vin Hunting Season Nr.2 Blend Rosu Sec",0.75,12.5,89.9,1,"16e20ddd"],["vin","Vin Chisinaul de Seara Merlot Rara Neagra Rosu Sec",0.75,12.5,125.0,1,"5d6a6e21"],["vin","Vin Teliani Valley Tsinandali Alb Sec",0.75,12.0,145.0,0,"1fae2f4f"],["vin","Vin Vinaria Din Vale 7 Coline Feteasca Neagra/cabernet",0.75,12.5,136.0,1,"c630882e"],["vin","Vin Hunting Season Nr.3 Blend Rosu Sec",0.75,12.5,89.9,1,"f9b0bb3c"],["vin","Vin Chisinaul de Seara Cabernet Sauvignon Rosu Sec",0.75,12.5,125.0,1,"595922a8"],["vin","Vin Teliani Valley Rkatsiteli Alb Sec",0.75,12.0,145.0,0,"c2533297"],["vin","Vin Chisinaul de Seara Chardonnay Alb Sec",0.75,12.5,125.0,1,"c08992df"],["vin","Vin Teliani Valley Khikhvi Alb Sec",0.75,13.0,239.0,0,"8e963ab"],["vin","Vin JP. Chenet Cabernet Syrah IGP Rosu Sec BIB",3.0,13.5,279.0,0,"3f43067a"],["vin","Vin Teliani Valley Saperavi Rosu Sec",0.75,12.5,145.0,0,"c4c07380"],["vin","Vin Milestii Mici Univers Sauvignon Blanc IGP Alb Sec",0.75,12.5,109.0,1,"bc0b1a65"],["vin","Vin Alb Sec Vinaria Din Vale 7 Coline Sauvignon/pinot Grigio",0.75,12.5,136.0,1,"3180058f"],["vin","Vin Salcuta Viorica IGP Vin Sec Alb",0.75,12.5,127.0,1,"22c23434"],["vin","Vin JP. Chenet Colombard Sauvignon Alb Sec BIB",3.0,11.0,279.0,0,"afdd9ac1"],["vin","Vin Teliani Valley Kakhuri Nr.8 Alb Sec",0.75,13.0,209.0,0,"2e66fc47"],["vin","Vin Milestii Mici Allegro Cabernet Sauvignon Rosu Sec",0.75,12.5,109.0,1,"acbf261d"],["vin","Vin Salcuta Alb de Onitcani Vin Sec Alb",0.75,12.5,106.9,1,"68b1e4fb"],["vin","Vin Motiv Merlot Saperavi Rose Sec",0.75,12.5,75.99,1,"3c0b12a2"],["vin","Vin Salcuta Epizod Pinot Noir Sec Rosu",0.75,12.5,295.0,1,"5403f0d"],["vin","Vin de Tomai Pinot Grigio Alb Sec",0.75,12.5,98.9,1,"45573899"],["vin","Vin Imperial Maestro 4 in Rosu Sec",0.75,12.5,286.0,1,"31c1a188"],["vin","Vin Salcuta Epizod Feteasca Neagra Sec Rosu",0.75,12.5,295.0,1,"57659bb3"],["vin","Vin Apriori Cabernet/saperavi Rosu Sec",0.75,12.5,59.99,1,"fc25b037"],["vin","Vin Purcari Cabernet de Purcari Rosu Sec",0.75,12.5,165.0,1,"ab8b334f"],["vin","Vin Apriori Chardonnay/riesling/rkatiteli Alb Sec",0.75,12.5,86.9,1,"f32c9d02"],["vin","Vin Purcari Negru de Purcari Amphorae Black, sec, roșu",0.75,12.5,936.0,1,"83bf621a"],["vin","Vin Cricova Vintage Cabernet Rosu Sec",0.75,12.5,84.9,1,"5a6c5733"],["vin","Vin Apriori Feteasca Alba Alb Sec",0.75,12.5,86.9,1,"2499af63"],["vin","Vin Cricova Or.subteran Feteasca Neagra Rosu Sec",0.75,12.5,109.0,1,"9703943"],["vin","Vin Apriori Feteasca Negra Rosu Sec",0.75,12.5,59.99,1,"f4940523"],["vin","Vin Purcari Sauvignon de Purcari Alb Blanc Sec",0.75,12.5,165.0,1,"fe5997e5"],["vin","Vin Cricova Vintage Codru Rosu Sec",0.75,12.5,84.9,1,"86ccc0ac"],["vin","Vin Apriori Merlot/malbec Rosu Sec",0.75,12.5,59.99,1,"c735480f"],["vin","Vin Cricova Cabernet 2000 Colectie Rosu Sec",0.75,12.5,379.9,1,"6c0180c1"],["vin","Vin Fautor Aurore Pinot Grigio Alb Sec",0.75,12.5,169.0,1,"a162365e"],["vin","Vin Crama Mircesti Riesling Alb Sec",0.75,12.5,229.0,1,"c03c4ad"],["vin","Vin Cricova Codru Colecție 2000, sec, roșu",0.75,12.5,379.0,1,"b47fcf14"],["vin","Vin Fautor Aurore Rara Neagra Rosu Sec",0.75,12.5,201.0,1,"a11c5e1c"],["vin","Vin Apriori Can Feteasca Neagra Rosu Sec",0.25,12.5,26.5,1,"660c558e"],["vin","Vin Castel Mimi Sânzienele, sec, alb",0.75,12.5,145.0,1,"2f731711"],["vin","Vin Apriori Muscat Alb Demisec",0.75,12.5,73.9,1,"3d83a59b"],["vin","Vin Rosu Dulce Porto Valdouro Tawny 10 ani",0.75,19.5,319.0,1,"4bf0781"],["vin","Vin Castel Mimi Cucoanele Alb Sec",0.75,12.5,145.0,1,"f7411836"],["vin","Vin Apriori Merlot Rose Demisec",0.75,12.5,73.9,1,"593abc5e"],["vin","Vin de Porto Valdouro Tawny, dulce, roșu",0.75,19.5,159.0,1,"54c9a617"],["vin","Vin Apriori Aquarelle Merlot, demidulce, roșu",0.75,12.5,73.9,1,"9131437f"],["vin","Vin Valpolicella Classico Bottega",0.75,12.5,255.0,1,"8c276b00"],["vin","Vin Cricova Prestige Patriarh Rosu Licoros",0.75,16.0,151.0,1,"7210c09b"],["vin","Vin Ripasso Valpolicella Superiore Bottega",0.75,12.5,351.0,1,"920316f7"],["vin","Vin Kazayak Merlot Roz Sec",0.75,12.5,89.9,1,"6744255"],["vin","Vin Amarone Valpolicella Bottega",0.75,12.5,855.0,1,"3e3cd17a"],["vin","Vin Kazayak Viorica IGP, sec, alb",0.75,12.5,89.9,1,"3332caa3"],["vin","Vin Mileștii Mici Univers Riesling de Rhin IGP, sec, alb",0.75,12.5,109.0,1,"9cb0face"],["vin","Vin Carlevana Raritet Muscat Ottonel & Chardonnay Orange Alb Sec",0.75,12.5,139.0,1,"78d7c64f"],["vin","Vin Château Fonfroide Bordeaux AOP, sec, roșu",0.75,12.5,149.0,1,"61be7d84"],["vin","Vin Rosso di Montalcino Bottega",0.75,12.5,405.0,1,"4926ccf9"],["vin","Vin Purcari Maluri de Prut Rosu Sec",0.75,12.5,168.0,1,"5ad10347"],["vin","Vin Basavin Optimist Rosu Sec",0.75,12.5,125.0,1,"2b3d0817"],["vin","Vin Alb Sec Chateau Vartely Totem Viorica",0.75,12.5,139.0,1,"135e3649"],["vin","Vin El Emperador Cabernet Sauvignon Premium Chile Rosu Sec",0.75,13.5,149.0,0,"71abff2e"],["vin","Vin Brunello di Montalcino Bottega",0.75,12.5,905.0,1,"36878b1d"],["vin","Vin Basavin Trei Fete Alb Sec",0.75,12.5,115.0,1,"97055127"],["vin","Vin Mileștii Mici Univers Codru IGP, sec, roșu",0.75,12.5,109.0,1,"b1d98510"],["vin","Vin Cricova Editie Limitata Pinot Noir Rosu Sec",0.75,12.5,151.0,1,"e730f57f"],["vin","Vin Rosu El Emperador Cabernet Carmenere",0.75,12.5,129.0,1,"9b944f87"],["vin","Vin Vinaria Din Vale Feateasca Alba Alb Sec",0.75,12.5,109.0,1,"10f16db6"],["vin","Vin Cricova Vintage Merlot Rosu Sec",0.75,12.5,84.9,1,"174e4d85"],["vin","Vin Piatra Neagra Cabernet Sauvignon and Merlot and Saperavi Rosu Sec",0.75,14.0,172.0,0,"360a7520"],["vin","Vin Chateau Vartely Totem Feteasca Neagra Rose",0.75,12.5,140.0,1,"aa944c48"],["vin","Vin Rosu Sec Chateauneuf du Pape Calvet",0.75,12.5,720.0,1,"1d99476c"],["vin","Vin Vinaria Din Vale Matur Cabernet Sauvignon Sec",0.75,12.5,109.0,1,"ce610036"],["vin","Vin Cricova Prestige Cabernet Rosu Sec",0.75,12.5,124.0,1,"ce9e0a84"],["vin","Vin Mileștii Mici Top Noian, sec, roșu",0.75,12.5,148.0,1,"bc467faf"],["vin","Vin Cricova Prestige Codru Rosu Sec",0.75,12.5,124.0,1,"adbc6b7a"],["vin","Vin Milestii Mici Cabernet",0.75,12.5,119.0,1,"73ec65de"],["vin","Vin Timbrus Sec Rosu Syrah de Purcari Terroir IGP",0.75,12.5,372.0,1,"9fe4a546"],["vin","Vin Rose Sec Fleurs de Prairie",0.75,12.5,229.0,0,"f4c04c52"],["vin","Vin Cricova Virgin Merlot, sec, roșu",0.75,12.5,248.0,1,"e5b44ca7"],["vin","Vin Milestii Mici Vintage Merlot 2009 Rosu Sec",0.75,12.5,119.0,1,"7d3981d2"],["vin","Vin Timbrus Sec Rosu Red Blend de Purcari Terroir IGP",0.75,12.5,372.0,1,"93b685ce"],["vin","Vin Castel Mimi Riesling de Bulboaca Alb Demisec",0.75,12.5,189.0,1,"a7b40ece"],["vin","Vin Castel Mimi Rara Neagra Roze Sec",0.75,12.5,145.0,1,"b874d8cd"],["vin","Vin Timbrus Sec Rosu Malbec de Purcari Terroir IGP",0.75,12.5,372.0,1,"fcef8257"],["vin","Vin Castel Mimi Governor Chardonnay/riesling Alb Sec",0.75,12.5,335.0,1,"29648826"],["vin","Vin Vertical Feteasca Alba Alb Demisec",0.75,12.5,80.9,1,"7096795b"],["vin","Vin Castel Mimi Governor Blend, sec, roșu",0.75,12.5,459.0,1,"5cbb7f5e"],["vin","Vin Milestii Mici Univers Viorica IGP 2023 Alb Sec",0.75,12.5,109.0,1,"4fa7731a"],["vin","Vin Vertical Riesling Alb Demisec",0.75,12.5,80.9,1,"bb301cd5"],["vin","Vin Cricova Prestige Roze de Cricova Roz Sec",0.75,12.5,124.0,1,"98c7f7bc"],["vin","Vin Rose D/sec Calvet D'anjou",0.75,11.0,149.0,0,"1deff556"],["vin","Vin Castel Mimi Rosu de Bulboaca Rosu Sec",0.75,12.5,189.0,1,"8b79b016"],["vin","Vin Cricova Prestige Pinot Grigio Alb Sec",0.75,12.5,124.0,1,"c3ec8097"],["vin","Vin Alb Sec Cape Dream Chenin Blanc",0.75,12.5,129.0,0,"36c0850a"],["vin","Vin Aurelius 2022 Roz Sec",0.75,12.5,108.0,1,"b12bafbd"],["vin","Vin Alb Sec la Chenaye Sancerre M. Martin",0.75,12.5,584.0,1,"40b87c39"],["vin","Vin Ice Wine Radacini Riesling Alb Dulce",0.375,11.0,275.0,1,"5a96dabe"],["vin","Vin Migdal-p Chardonnay Alb Sec Carte",3.0,12.5,146.9,1,"5e52ca5d"],["vin","Vin Chateau Vartely Sauvignon Blanc Alb Sec",0.75,12.5,93.9,1,"860f831e"],["vin","VIN Kvint Kvintessence Malbec / Cabernet Sauvignon / Saperavi rosu sec",0.75,12.5,155.9,1,"363a6e9e"],["vin","Vin Milestii Mici Vintage Negru de Milesti 1988 Rosu Sec",0.7,12.5,119.0,1,"f6ee2c29"],["vin","Vin Aurelius Pinot Grigio Alb Sec",0.75,12.5,108.0,1,"2a6cc63c"],["vin","Vin Alb Sec Hans Baer Gewurztraminer",0.75,10.0,129.0,0,"ff09dc71"],["vin","Vin Radacini Vero di Moscato Alb Dulce",0.75,7.0,83.59,1,"196ef49a"],["vin","Vin Alb Sec Hans Baer Riesling Trocken",0.75,12.5,129.0,1,"2a9007a1"],["vin","Vin Radacini Vero di Moscato Rose Dulce",0.75,7.0,83.59,1,"3f7a318a"],["vin","Vin Crama Mircesti Feteasca Neagra-saperavi",0.75,12.5,252.0,1,"199b49e7"],["vin","Vermut Marengo Classic Bianco Alb",0.5,15.0,93.9,1,"a834cd8b"],["vin","Vermut Marengo Bianco Classic Alb",1.0,15.0,138.0,1,"59e2a701"],["vin","Vin Château Vartely Individo Merlot & Cabernet Sauvignon, sec, roșu",0.75,12.5,139.0,1,"9aee6bda"],["vin","Vin Bostavan Wine Crime Naughty White Sec Alb",0.75,12.5,90.9,1,"5e44a12f"],["vin","Vin Crama Mircești Viorica, demisec, alb",0.75,12.5,252.0,1,"af0a5d6f"],["vin","Vin Bostavan Dor Merlot/saperavi Rose Sec",0.75,12.5,89.5,1,"6a00265"],["vin","Vin Chateau Vartely Cabernet/sauvignon Rosu Sec",0.75,12.5,93.9,1,"33de5813"],["vin","Vin Bostavan Dor Feteasca Alba/chardonnay Alb Sec",0.75,12.5,89.5,1,"1a7b72e8"],["vin","Vermut Marengo Classic Rosso Roze",0.5,15.0,88.95,1,"e1de28c6"],["vin","Vin Purcari Chardonnay de Purcari, sec, alb",0.75,12.5,175.0,1,"6a8c8db8"],["vin","Vin Chateau Vartely Pinot Noir Sec",0.75,12.5,93.9,1,"72241871"],["vin","Vin Chateau Vartely Sec Roz",0.75,12.5,93.9,1,"5d29035b"],["vin","Vin Purcari Negru de Purcari Rosu Sec",1.5,12.5,793.0,1,"398da06"],["vin","Vin Chateau Vartely Chardonnay Alb Sec",0.75,12.5,93.9,1,"e0903cba"],["vin","Vin Carlevana Raritet Alb de Mereni Alb Sec",0.75,12.5,139.0,1,"2a4a6788"],["vin","Vin Chateau Vartely Pastoral Desert C/c",0.75,16.0,142.0,1,"753a942e"],["vin","Vin Purcari Negru de Purcari Vintage",0.75,12.5,795.0,1,"b69b38e3"],["vin","Vin Chateau Vartely Merlot Rosu Sec",0.75,12.5,93.9,1,"dd211348"],["vin","Vermut Perlino Bianco",1.0,15.0,145.0,0,"bb46c715"],["vin","Vermut Perlino Rosso",1.0,15.0,145.0,0,"af0789e9"],["vin","Vin Kvint Archive Malbec Cabernet Sauvignon Saperavi Rosu Sec",0.75,15.0,139.0,0,"8aa01b1e"],["vin","Vin Purcari Vinohora C/select Roze Sec",0.75,12.5,168.0,1,"7419e4b6"],["vin","Vin Kvint Archive Malbec Rosu Sec",0.75,15.0,139.0,0,"357ce389"],["vin","Vin Purcari Pinot Noir de Purcari, sec, roșu",0.75,12.5,165.0,1,"85b179fb"],["vin","Vin Kvint Archive Feteasca Neagra Merlot Saperavi Rosu Sec",0.75,15.0,139.0,0,"629bc7fd"],["vin","Vin Purcari Rosé de Purcari, sec, roz",0.75,12.5,165.0,1,"66eee6b1"],["vin","Vin Kvint Archive Cabernet Sauvignon Merlot Rosu Sec",0.75,15.0,139.0,0,"abceb87d"],["vin","Vin Milestii Mici Purpuriu de Purcari Rosu Sec",0.75,12.5,119.0,1,"12092bf"],["vin","Vin Carlevana Raritet Sauvignon Blanc Alb Sec",0.75,12.5,139.0,0,"89b3a173"],["vin","Vin Bostavan Black Doctor, demidulce, roșu",0.75,12.5,119.0,1,"56f43195"],["vin","Vin Carlevana Kosher Merlot, demidulce, roșu",0.75,12.5,389.0,1,"ff9d8aa0"],["vin","Vin Poiana Rose",0.75,12.5,245.0,1,"1bd57b24"],["vin","Vin Carlevana Raritet Malbec Rosu Sec",0.75,12.5,139.0,1,"2f48a22e"],["vin","Vin Sec Rosu I'm Winery Feteasca Neagra",0.75,12.5,176.0,1,"5ce1fe9d"],["vin","Vin Bostavan Dor Ice W. White Sweet Otonel/traminer",0.5,11.0,309.0,1,"b9f656b"],["vin","Vin Carlevana Raritet Rara Neagra Rosu Sec",0.75,12.5,139.0,1,"61bcad46"],["vin","Vin Castel Mimi Maini in Sold Rosu Sec",0.75,12.5,145.0,1,"f522dc8a"],["vin","Vin Carlevana Raritet Viorica Alb Sec",0.75,12.5,139.0,1,"6a879981"],["vin","Vin Tomai Embraced By Time Muscat Demidulce Alb",1.0,12.5,78.9,1,"73cadc01"],["vin","Vin Imperial Maestro Secret Blend Bottle Reserve Rosu D/sec",0.75,12.5,155.0,1,"fc393c8b"],["vin","Vin Salcuta Valverde Cabernet Sauvignon Rosu Sec",0.75,12.5,63.59,1,"3acd5553"],["vin","Vin Salcuta Valverde Chardonnay Alb Sec",0.75,12.5,63.59,1,"a81f5f2"],["vin","Vin Carlevana Renaissance Merlot Roz Sec",0.75,12.5,85.9,0,"c9a69e68"],["vin","Vin Purcari Rosu de Purcari Sec",0.75,12.5,382.0,1,"497b76a8"],["vin","Vin Salcuta Valverde Pinot Gris Alb Sec",0.75,12.5,63.59,1,"61ed826"],["vin","Vin Purcari Negru de Purcari, sec, roșu",0.75,12.5,489.0,1,"270b877a"],["vin","Vin Salcuta Valverde Riesling de Rhin Alb Sec",0.75,12.5,63.59,1,"c06e91e7"],["vin","Vin Purcari Alb de Purcari Sec",0.75,12.5,382.0,1,"c20cad93"],["vin","Vin Mileștii Mici Univers Rosé de Mileștii, sec, roz",0.75,12.5,109.0,1,"6ebc23fa"],["vin","Vin Salcuta Valverde Rose Sec Roz",0.75,12.5,63.59,1,"a6702a6"],["vin","Vin Purcari Ice Wine Muscat Ottonel & Traminer, dulce, alb",0.375,11.0,455.0,1,"37b4a1e9"],["vin","Vin Chateau Vartely IGP Riesling de Rhein Alb Sec",0.75,12.5,93.9,1,"e3d60ebd"],["vin","Vin Doina Artitude Feteasca/cabernet/merlot Rosu Sec 2017",0.75,12.5,129.0,1,"a32a9d08"],["vin","Vin Chateau Vartely Individo Malbec/ Syrah Roze Sec",0.75,12.5,139.0,1,"796e36ec"],["vin","Vin Doina Artitude Muscat IGP Alb Sec 2021",0.75,12.5,129.0,1,"972bd439"],["vin","Vin Motiv Feteasca Alba Chardonnay Alb Sec",0.75,12.5,75.99,1,"88766734"],["vin","Vin Aurelius Viorica, sec, alb, ediție limitată",0.75,12.5,108.0,1,"37a3971c"],["vin","Vin Doina Artitude Sauvignon IGP Alb Sec 2021",0.75,12.5,129.0,1,"44673025"],["vin","Vin Motiv Rara Neagra Cabernet Rosu Sec",0.75,12.5,75.99,1,"b1356e31"],["vin","Vin Cricova Vintage Chardonnay Alb Sec",0.75,12.5,84.9,1,"80d23570"],["vin","Vin Rosu Sec Abis Milestii Mici",0.75,12.5,148.0,1,"6cd11354"],["vin","Vin Doina Artitude Viorica Alb Sec 2023",0.75,12.5,129.0,1,"3d7c691a"],["vin","Vin Rosu Sec Genun Milestii Mici",0.75,12.5,148.0,1,"55ecfd0d"],["vin","Vin Carlevana Raritet Rara Neagra & Pinot Noir Roz Sec",0.75,14.0,139.0,0,"220a47c8"],["vin","Vin Castel Mimi Isterie Rosu Sec",0.75,12.5,145.0,1,"bad2a5c7"],["vin","Vin Aurelius Feteasca Regala Alb Sec",0.75,12.5,108.0,1,"55afe9e2"],["vin","Vin Aurelius Chardonnay Alb Sec",0.75,12.5,108.0,1,"36a07f04"],["vin","Vin Domeniile Vorniceni Trei Mândre, sec, alb",0.75,12.5,215.0,1,"8217db3"],["vin","Vermut Maurt Bacio di Bolle Bianco Alb Dulce",1.0,15.0,185.0,1,"5b26ce73"],["vin","Vermut Maurt Bacio di Bolle Cherry Rosu Dulce",1.0,15.0,185.0,1,"b274be4a"],["vin","Vin Salcuta Chardonnay Alb Sec",0.75,12.5,118.0,1,"658b7514"],["vin","Vin Cricova Vintage Sauvignon Alb Sec",0.75,12.5,84.9,1,"a2f436ed"],["vin","Vin Salcuta Pinot Gris Alb Sec",0.75,12.5,118.0,1,"bce9dff0"],["vin","Vin Cricova Prestige Chardonnay Alb Sec",0.75,12.5,124.0,1,"d543e102"],["vin","Vin Salcuta Feteasca Alba Alb Sec",0.75,12.5,127.0,1,"964abb9d"],["vin","Vin Salcuta Feteasca Neagra Rosu Sec",0.75,12.5,127.0,1,"f0b93e9b"],["vin","Vin Castel Mimi Orange Wine Alb Sec",0.75,12.5,229.0,1,"3e54457c"],["vin","Vin Castel Mimi Governor First Lady Rose Roz Sec",0.75,12.5,335.0,1,"7b7a8f34"],["vin","Vin Salcuta Pinot Gris Blush Sec Roz",0.75,12.5,127.0,1,"403b378c"],["vin","Vin Salcuta Eno Riesling, Traminer Alb Demisec",0.75,12.5,148.0,1,"846ca329"],["vin","Vin Château Vartely Pinot Grigio IGP, sec, alb",0.75,12.5,93.9,1,"976bfa1a"],["vin","Vin Salcuta Eno Cabernet Sauvignon, Merlot, Saperavi Rosu Sec",0.75,12.5,116.0,1,"970ee4cc"],["vin","Vin Vinuri de Comrat Folclor Saperavi Rosu Sec",0.75,12.5,85.9,1,"c6284e6e"],["vin","Vin Bostavan Merlot Roz",0.75,12.5,64.9,1,"c7c8b474"],["vin","Vin Bottega Pinot Grigio delle Venezie DOC",0.75,12.0,169.0,0,"51d9bf28"],["vin","Vin Castel Mimi Governor Blend Rosu Sec Cutie",1.5,12.5,1199.9,1,"455267b5"],["vin","Vin Vinuri de Comrat Folclor Feteasca Alba Alb Sec",0.75,12.5,85.9,1,"9c59af92"],["vin","Vin Castel Mimi Governor Feteasca Neagra Rosu Sec",0.75,12.5,391.0,1,"ed9e9bf8"],["vin","Vin Cricova Editie Limitata Feteasca Alba Alb Sec",0.75,12.5,151.0,1,"18092e0e"],["vin","Vin Bostavan Merlot Rosu Sec",0.75,12.5,64.9,1,"76754ad7"],["vin","Vin Alb Sec Arthur Metz Riesling Michel Leon",0.75,12.5,229.0,1,"97ec84a1"],["vin","Vin Arthur Metz Gewürztraminer Michel Leon, demisec, alb",0.75,12.5,229.0,1,"3a87ab04"],["vin","Vin Bottega Cabernet Sauvignon Trevenezie Igt Rosu Sec",0.75,12.5,169.0,0,"e16ac1ee"],["vin","Vin Purcari Viorica & Muscat Ottonel, sec, alb",0.75,12.5,175.0,1,"97d57dcd"],["vin","Vin Bottega Acino D'oro Chianti DOCG Rosu Sec",0.75,12.5,199.0,0,"49ff9c98"],["vin","Vin Chateau Vartely IGP Set Merlot/chardonnay",0.75,12.5,235.0,1,"dda1541"],["vin","Vin Bottega Petalo Moscato Trevenezie Igt Alb Demisec",0.75,9.0,199.0,0,"86120b25"],["vin","Vin Fautor 310 Altitudine Chardonnay/feteasca Regala Alb Sec",0.75,12.5,132.0,1,"98965d15"],["vin","Vin Fautor 310 Altitudine Traminer/riesling Alb Sec",0.75,12.5,132.0,1,"5ab467cb"],["vin","Vin Cricova Ornament Cabernet Rosu Demidulce",0.75,12.5,44.9,1,"a8bec3c5"],["vin","Vin Fautor 310 Altitudine Merlot/feteasca Neagra Roz Sec",0.75,12.5,132.0,1,"808a90ea"],["vin","Vin Cricova Ornament Merlot Rosu Demidulce",0.75,12.5,44.9,1,"d4b8b770"],["vin","Vin Fautor 310 Altitudine Cabernet Sauvignon & Fetească Neagră, sec, roșu",0.75,12.5,132.0,1,"f1fec260"],["vin","Vin Cricova Ornament Chardonay Demidulce",0.75,12.5,44.9,1,"240d8dc7"],["vin","Vin Castel Mimi Merlot Rosu Sec",0.75,12.5,189.0,1,"a622c829"],["vin","Vin Purcari Vinohora Alb Sec C/select",0.75,12.5,168.0,1,"102ea5f5"],["vin","Vin Cricova Ornament Muscat Alb Demidulce",0.75,12.5,44.9,1,"624e19"],["vin","Vin Château Vartely Individo Pinot Gris & Chardonnay, sec, alb",0.75,12.5,139.0,1,"bda5c9a7"],["vin","Vin Castel Mimi Cabernet Sauvignon Rosu Sec",0.75,12.5,189.0,1,"cdc2d456"],["vin","Vin Fautor 310 Altitudine Merlot & Rară Neagră, sec, roșu",0.75,12.5,132.0,1,"bcc9cfb6"],["vin","Vin Cricova Ornament Lidia Roz Demidulce",0.75,12.5,44.9,1,"daffa92f"],["vin","Vin Sens Feteasca Neagra Rosu Sec",0.75,12.5,110.0,1,"16bba8ca"],["vin","Vin Cricova Ornament Isabella, demidulce, roz",0.75,12.5,44.9,1,"8f9fbf7a"],["vin","Vin Gitana Lupi, sec, roșu",0.75,12.5,599.0,1,"903a1250"],["vin","Vin Cricova National Cabernet Rosu Sec",0.75,12.5,49.9,1,"d21f7662"],["vin","Vin Chateau Vartely Feteasca/riesling Alb Sec",0.75,12.5,139.0,1,"58003f36"],["vin","Vin Cricova National Chardonnay Alb Sec",0.75,12.5,49.9,1,"9c362733"],["vin","Vin Château Vartely Individo Rară Neagră, Malbec & Syrah, sec, roșu",0.75,12.5,139.0,1,"7f76a399"],["vin","Vin Chateau Vartely Individo Feteasca Neagra Rara Neagra Rosu Sec 2019",0.75,14.0,139.0,0,"335ba808"],["vin","Vin Cricova National Muscat Alb Sec",0.75,12.5,49.9,1,"e70641"],["vin","Vin Negru de Kazayak Rosu Sec",0.75,12.5,131.0,1,"49df2511"],["vin","Vin Cricova Hirtie Cabernet Rosu Sec",0.75,12.5,49.9,1,"b9e851f0"],["vin","Vin Alb de Kazayak Alb Sec",0.75,12.5,131.0,1,"54238cdc"],["vin","Vin Rosu de Kazayak Rosu Sec",0.75,12.5,131.0,1,"6a16699f"],["vin","Vin Cricova Hirtie Chardonnay Alb Sec",0.75,12.5,49.9,1,"825c227c"],["vin","Vin Carlevana Raritet Merlotage Rosu Sec",0.75,12.5,139.0,1,"7082d4a9"],["vin","VIN alb sec Cricova Muscat",0.75,12.5,49.9,1,"1e7365c8"],["vin","Vin Carlevana Raritet Rubinus Rosu Sec",0.75,12.5,139.0,1,"c4acf201"],["vin","Vin Bostavan Pastoral Mănăstirea Căpriana, dulce, roșu",0.75,16.0,101.0,1,"e944fd8e"],["vin","Vin Vinaria Din Vale Feteasca Neagra Rosu Sec",0.75,12.5,109.0,1,"80cf9ae0"],["vin","Vin Cricova Bag in Box Chardonnay Alb Sec",3.0,12.5,149.0,1,"ec7b8674"],["vin","Vin Fautor Vie de Vis Merlot/cabernet/sauvignon Rosu D/sec",0.75,12.5,99.9,1,"20fb96a5"],["vin","Vin Maestro Virtuoso Pinot Noir Rose Sec",0.75,12.5,165.0,1,"c51ce71c"],["vin","Vin Fautor Vie de Vis Cabernet/sauvignon Rosu Sec",0.75,12.5,99.9,1,"842e038c"],["vin","Vin Vinaria Din Vale Select Roze Sec",0.75,12.5,109.0,1,"598e4e9"],["vin","VIN roșu demidulce Cricova Ornament Cabernet",2.0,12.5,114.0,1,"16ea3463"],["vin","Vin Fautor Vie de Vis Rose Merlot/cabernet/sauvignon Roz D/sec",0.75,12.5,99.9,1,"8362b36c"],["vin","Vin Rosu Sec Feteasca Neagra Vintage",0.75,12.5,165.0,1,"231b4b0d"],["vin","Vin Fautor Vie de Vis Sauvignon Blanc Alb Sec",0.75,12.5,99.9,1,"b5737743"],["vin","Vin Alb Sec Chardonay Vintage",0.75,12.5,165.0,1,"a7277904"],["vin","VIN alb demidulce Cricova Ornament Muscat",2.0,12.5,114.0,1,"d203f7e1"],["vin","Vin Rosu Sec Chartron et Trebuchet Bourgogne Pinot Noir",0.75,12.5,420.0,1,"7abbc7da"],["vin","Vin Alb Sec Hans Greyl Sauvignon Blanc",0.75,12.5,209.0,0,"37121966"],["vin","Vin Maestro Virtuoso Blanc de Noirs Merlot Alb Sec",0.75,12.5,165.0,1,"d281f0ed"],["vin","Vin Salcuta Sauvignon Blanc Alb Sec",0.75,12.5,127.0,1,"6014e752"],["vin","Vin Alb Sec Tomtit Sauvignon Blanc",0.75,12.5,199.0,1,"9e773cdf"],["vin","Vin Licoros Porto Cruz Tawny Rosu Dulce",0.75,19.0,259.0,0,"f57e3e62"],["vin","Vin Villa Cardini Chianti DOCG Rosu Sec",0.75,12.5,139.0,0,"1d147cf6"],["vin","Vin Cricova Vintage Merlot/cabernet Roz Sec",0.75,12.5,84.9,1,"750d0164"],["vin","Vin Bostavan Muscat Roz",0.75,12.5,64.9,1,"655b9ab4"],["vin","Vin Alb Sec Torre Giacomo Pinot Grigio",0.75,12.5,129.0,1,"682def0c"],["vin","Vin Kvint Viorica Alb Sec",0.75,12.5,94.9,0,"541182be"],["vin","Vin Cricova Ornament Rose Demidulce",0.75,12.5,44.9,1,"620be66e"],["vin","Vin Bostavan Muscat Alb",0.75,12.5,64.9,1,"49023617"],["vin","Vin Carlevana Mereni Alb Demidulce",0.75,12.5,69.9,1,"bc337180"],["vin","Vin Carlevana Mereni Rosu Demidulce",0.75,12.5,69.9,1,"1e60eb6a"],["vin","Vin Purcari Rară Neagră & Saperavi, sec, roșu",0.75,12.5,199.0,1,"ee78d5f7"],["vin","Vin Carlevana Mereni Alb Sec",0.75,12.5,69.9,1,"2f46da17"],["vin","Vin Viorica Alb Sec Atu",0.75,12.5,179.0,1,"a616fc15"],["vin","Vin Carlevana Mereni Rosu Sec",0.75,12.5,69.9,1,"79dff0a3"],["vin","Vermut Martini Bianco",0.5,15.0,152.0,1,"a66ec75c"],["vin","Vin Cricova Pastoral Hirtie Rosu Licoros",0.75,16.0,88.9,1,"db96eef"],["vin","Vin Bostavan Cabernet Rosu Sec",0.75,12.5,64.9,1,"4c859c7d"],["vin","Vin Carlevana Renaissance Riesling de Rhein Alb Sec",0.75,12.5,85.9,1,"deae6b49"],["vin","Vermut Martini Fiero",0.75,15.0,269.0,1,"874972a8"],["vin","Vin Taraboste Alb Sec Chateau Vartely",0.75,12.5,315.0,1,"98230ce6"],["vin","Vin Chateau Vartely Taraboste Rosu Sec",0.75,12.5,374.0,1,"189ad5dc"],["vin","Vin Cricova Or.subteran Cabernet Roze Sec",0.75,12.5,109.0,1,"8b1b2d24"],["vin","Vin Chateau Vartely Taraboste Pinot Noir Rosu",0.75,12.5,374.0,1,"af1ca787"],["vin","Vin Fautor Aurore Feteasca Neagra/tempranillo Rosu Sec",0.75,12.5,201.0,1,"ed060b4e"],["vin","Vin Poiana Legenda",0.75,12.5,235.0,1,"2824237b"],["vin","Vin Cricova Ice Wine Alb Dulce",0.375,11.0,369.0,1,"e29e415f"],["vin","Vin Atu Fata cu Flori Codrinschii/ Saperavi Rosu Sec",0.75,12.5,255.0,1,"f485c412"],["vin","Vin Maestro Virtuoso Feteasca Neagra & Rara Neagra Rosu Sec",0.75,12.5,165.0,1,"6320c2ca"],["vin","Vin Vertical Cabernet Rosu Demisec",0.75,12.5,80.9,1,"2405c28f"],["vin","Vin Rosu Sec Cabernet-sauvignon Kazayak",0.75,12.5,89.9,1,"2f4d592"],["vin","Vin Minuty M Rose France",0.75,13.0,389.0,0,"83e47d0e"],["vin","Vin Impresario Feteasca Neagra Cabernet Sauvignon Rosu Sec",0.75,12.5,111.0,1,"adc00844"],["vin","Vin Salcuta Eno Cabernet Sauvignon, Merlot, Feteasca Neagra Rosu Sec",0.75,12.5,155.9,1,"d7916c90"],["vin","Vin Isabella D/d Cronica Vinului Bostavan",1.0,12.5,61.9,1,"df9808d1"],["vin","Vin Sălcuța Rară Neagră, sec, roșu",0.75,12.5,127.0,1,"f7a601cc"],["vin","Vin Alb Sec Hans Greyl Sauvignon Vis 2023",0.75,12.5,209.0,1,"9fabdc41"],["vin","Vin Sec Rosu Aurelius Cabernet Sauvignon LE",0.75,12.5,185.0,1,"5c63a947"],["vin","Vin Sec Rosu Aurelius Merlot LE",0.75,12.5,185.0,1,"ac6cd6d2"],["vin","Vin Sec Rosu Aurelius Feteasca Neagra LE",0.75,12.5,185.0,1,"eff62822"],["vin","Vin Sec Rosu Aurelius Cabernet Sauvignon and Merlot and Feteasca Neagra LE",0.75,12.5,185.0,1,"c3585d55"],["vin","Vin Kazayak Feteasca Regala Alb Sec",0.75,12.5,89.9,1,"577df955"],["vin","Vin Castel Mimi Sfaditele Rosu Sec",0.75,12.5,189.0,1,"4c02ad8f"],["vin","Vin Cricova Bag in Box Roz Sec",3.0,12.5,149.0,1,"c5054bd3"],["vin","Vin Kazayak Merlot IGP Rosu Sec",0.75,12.5,89.9,1,"4a806114"],["vin","Vin Academia Purcari Viorica Orange",0.75,12.5,799.0,1,"8c0feebb"],["vin","Vin Academia Purcari Rara Neagra",0.75,12.5,799.0,1,"88c2bc29"],["vin","Vin Castel Mimi Rose de Bulboaca Roz Demisec",0.75,12.5,189.0,1,"a7a70e03"],["vin","Vin Radacini Basic Sauvignon Blanc Alb Sec",0.75,12.5,92.9,1,"f7f7db3e"],["vin","Vin Academia Purcari Fetească Neagră, sec, roșu",0.75,12.5,799.0,1,"5b9c9de6"],["vin","Vin de Tomai Viorica, sec, alb",0.75,12.5,98.9,1,"ccf08236"],["vin","Vin Academia Purcari Saperavi",0.75,12.5,799.0,1,"85afca6b"],["vin","Vin Muscat Rose D/d Cronica Vinului",1.0,12.5,61.9,1,"eb70fd80"],["vin","Vin Castel Mimi Sauvignon Blanc Alb Sec",0.75,12.5,145.0,1,"28a975ee"],["vin","Vermut Marengo Classic Mojito",1.0,15.0,138.0,1,"21547600"],["vin","Vermut Martini Extra Dry",1.0,15.0,269.0,1,"a65ca62d"],["vin","Vermut Martini Rosso",1.0,15.0,289.0,1,"290c95bd"],["vin","Vin Domeniile Davidescu Feteasca Neagra&malbec Rosu Sec",0.75,12.5,111.0,1,"d2b11a12"],["vin","Vin Purcari Pastoral de Desert",0.75,16.0,165.0,1,"b056553d"],["vin","Vin Domeniile Davidescu Rară Neagră & Saperavi, sec, roșu",0.75,12.5,111.0,1,"1e7bd16c"],["vin","Vin Purcari Sapiens Sauvignon Alb Sec",0.75,12.5,239.0,1,"a5366b82"],["vin","Vin Licoros Porto Cruz Rosu Dulce 20 ani Cutie Lemn",0.75,20.0,1259.0,0,"982e725a"],["vin","Vin Purcari Merlot de Purcari, sec, roșu",0.75,12.5,165.0,1,"4a16fd8e"],["vin","Vin Purcari Sapiens Chardonnay Alb Sec",0.75,12.5,239.0,1,"5dd88be4"],["vin","Vin Licoros Porto Cruz Ruby Rosu Dulce",0.75,19.0,259.0,0,"e5aaf2f1"],["vin","Vin Purcari Sapiens Rara Neagra Rosu Sec",0.75,12.5,239.0,1,"8a7334f2"],["spumant","Șampanie Barons de Rothschild Brut",0.75,12.0,1559.0,1,"ceefd555"],["spumant","Prosecco Perlino DOC, extra dry, alb",0.75,11.5,139.0,1,"31b55093"],["spumant","Prosecco Perlino DOC Extra Dry Bio",0.75,11.0,172.0,0,"519c6b09"],["spumant","Vin spumant Perlino Asti DOCG, dulce, alb",0.75,7.0,149.0,1,"8c8a8cd3"],["spumant","Cremant D'alsace A. Metz Prestige Brut",0.75,12.0,245.0,0,"297c4c31"],["spumant","Vin spumant Crémant de Bourgogne Chartron et Trébuchet, brut, alb",0.75,11.5,365.0,1,"452b1170"],["spumant","Vin spumant Rădăcini Métier Clasic, brut, alb",0.75,11.5,217.0,1,"477b5579"],["spumant","Vin Spumant Metier Brut Natur Alb",0.75,11.5,219.0,1,"cb398718"],["spumant","Prosecco Bottega Poeti DOC Extra Dry",0.75,11.0,225.0,0,"8b04c838"],["spumant","Vin spumant Castel Mimi 9 Muses, brut, alb",0.75,11.5,109.0,1,"795c42f2"],["spumant","Vin Spumant Radacini Blanc de Blancs Alb Brut",0.75,11.5,162.0,1,"e247da2d"],["spumant","Vin Spumant Radacini Blanc de Noir Alb Brut",0.75,11.5,162.0,1,"282ae0bc"],["spumant","Vin Spumant Radacini Rara Neagra Roz Brut",0.75,11.5,114.0,1,"ff63caa1"],["spumant","Vin spumant Mileștii Mici Moldova de Lux, demisec, alb",0.75,11.5,92.9,1,"d58c2ca1"],["spumant","Prosecco Bottega Gold DOC, brut, alb",3.0,11.5,2899.0,1,"34f0a5fc"],["spumant","Prosecco Bottega Gold Brut Cutie",0.75,11.5,529.0,1,"b77538d1"],["spumant","Prosecco Bottega Gold Rose",1.5,11.5,1119.0,1,"e731bfc"],["spumant","Prosecco Bottega Gold Brut",1.5,11.0,1119.0,0,"ff188af6"],["spumant","Vin spumant J.P. Chenet Original Blanc de Blancs, brut, alb",0.75,11.5,125.0,1,"2a47bb68"],["spumant","Prosecco Bottega Gold Rose",3.0,11.5,2899.0,1,"7d9d3b1d"],["spumant","VIN SPUMANT 242 Viogner Alb brut Kvint",0.75,11.5,99.9,1,"8d378b66"],["spumant","Prosecco Bottega Gold DOC, brut, alb",0.75,11.5,459.0,1,"6d7a5c15"],["spumant","Vin Spumant Bottega Gold Rose Brut",0.75,11.5,459.0,0,"5ef21d58"],["spumant","Vin Spumant Petalo Amore Moscato Bottega Dulce",0.75,6.5,196.0,0,"30038ae9"],["spumant","Prosecco Bottega Poeti DOCG Brut",0.75,11.5,298.0,0,"b408c8c2"],["spumant","Prosecco Bottega Il Vino dei Poeti DOC, brut, alb",0.75,11.5,225.0,1,"c6eb5619"],["spumant","Prosecco Ponte Villoni DOC, extra dry, alb",0.75,11.5,127.0,1,"9516d6d4"],["spumant","Vin spumant J.P. Chenet Original, dulce, alb",0.75,11.5,125.0,1,"c315ad90"],["spumant","Prosecco Signore Giuseppe DOC, extra dry, alb",0.75,11.5,119.0,1,"f754b56c"],["spumant","Champagne Paul Chambois Brut",0.75,12.0,785.0,0,"82768464"],["spumant","Vin Spumant Cava Sorra Blanca Organic Alb Brut",0.75,11.5,219.0,0,"3ad57029"],["spumant","Vin spumant Vinaria din Vale Pinot Grigio, demisec, roz",0.75,11.5,137.0,1,"b2422e1f"],["spumant","Vin spumant Tomai Black, demisec, alb",0.75,11.5,78.9,1,"e4523c7d"],["spumant","Vin spumant Vinăria din Vale Pinot Grigio & Chardonnay, brut, alb",0.75,11.5,139.0,1,"ad7c60bf"],["spumant","Vin Spumant Brut Alb Perlino Prosecco DOC",0.75,11.0,139.0,0,"b6cafea0"],["spumant","Vin spumant Vinăria din Vale Viorica, demisec, alb",0.75,11.5,139.0,1,"fa60c36b"],["spumant","Vin Spumant Radacini Cuvee dulce roze",0.75,11.5,88.9,1,"ce62fdbb"],["spumant","Vin Spumant Apriori Muscat Alb Dulce",0.75,11.5,89.9,1,"e7f60bc8"],["spumant","Vin spumant Rădăcini Basic, brut, alb",0.75,11.5,88.9,1,"c5a40570"],["spumant","Vin spumant Cricova Pinot Noir, demisec, alb",0.75,11.5,84.9,1,"719c305c"],["spumant","Vin Spumant Carlevana Viviano Alb Demisec",0.75,11.0,99.9,0,"f756d45c"],["spumant","Vin spumant Apriori Muscat, demisec, alb",0.75,11.5,89.9,1,"4e97b202"],["spumant","Vin Spumant Apriori Muscat Rose D/sec",0.75,11.5,89.9,1,"b2b6c08b"],["spumant","Vin Spumant Apriori Muscat Rose Dulce",0.75,11.5,89.9,1,"bae199ad"],["spumant","VIN SPUMANT KVINTESSENCE Viogner Alb brut Kvint Grand CRU",0.75,11.5,189.0,1,"a0669f83"],["spumant","VIN SPUMANT Roz Pinot Noir brut Kvint Grand CRU",0.75,11.5,144.9,1,"68f1c71c"],["spumant","Vin spumant Mileștii Mici Moldova de Lux, brut, alb",0.75,11.5,92.9,1,"52f85826"],["spumant","Vin spumant Mileștii Mici Moldova de Lux, dulce, alb",0.75,11.5,92.9,1,"31543374"],["spumant","Vin Spumant Buket Moldavii Alb Demisec",0.75,11.5,109.0,1,"46e8f0a3"],["spumant","Vin spumant Cuvée de Purcari, brut, alb",3.0,11.5,2435.0,1,"f06e2bcb"],["spumant","Vin spumant Mileștii Mici Moldova de Lux, dulce, roz",0.75,11.5,92.9,1,"1d0d9fd7"],["spumant","Vin spumant Mileștii Mici Moldova de Lux Muscat, dulce, alb",0.75,11.5,92.9,1,"1b0c8ac5"],["spumant","Vin spumant Rădăcini Vero di Moscato, dulce, roz",0.75,7.0,94.9,1,"4ed0408f"],["spumant","Vin Spumant Cinzano Asti",0.75,7.0,199.0,1,"af231ae3"],["spumant","Vin spumant Martini Asti DOCG, dulce, alb",0.75,7.0,225.0,1,"fab4399e"],["spumant","Vin Spumant Pata Negra Cava Brut",0.75,11.5,136.9,0,"fcd3a589"],["spumant","Vin Spumant Radacini Feteasca Alba Brut Alb",0.75,11.5,114.0,1,"4e5cd745"],["spumant","Vin Spumant Radacini Cuvee demisec alb",0.75,11.5,88.9,1,"6d4b2d0e"],["spumant","Vin Spumant Pata Negra Cava D/sec",0.75,11.5,148.9,0,"3a6e7270"],["spumant","Vin Spumant Martini Roze",0.75,11.5,269.0,1,"643f6671"],["spumant","Vin Spumant Radacini Cuvee Muscat dulce alb",0.75,11.5,88.9,1,"4ec79396"],["spumant","Vin Spumant Pata Negra Cava Organic Brut",0.75,11.5,181.9,0,"69ec6a13"],["spumant","Vin Spumant Lacrima Dulce Gold Alb Dulce",0.75,11.5,128.0,1,"4f263b46"],["spumant","Vin Spumant Apriori Glera Alb Brut",0.75,11.5,94.9,1,"73327130"],["spumant","Vin Spumant Cricova Cuvee Prestige Alb Brut",0.75,11.5,269.0,1,"c60826ac"],["spumant","Vin Spumant Carlevana Viviano Alb Dulce",0.75,11.0,99.9,0,"87fa335c"],["spumant","Vin Spumant Cricova Grand Vintage Alb Brut Cut",0.75,11.5,649.0,1,"5e764ebe"],["spumant","Vin Spumant Carlevana Viviano Alb Brut",0.75,11.5,99.9,0,"b7343117"],["spumant","Vin spumant alb extra brut Cricova Blanc De Noirs",0.75,11.5,269.0,1,"fbf67ada"],["spumant","Prosecco Maestro Millesimato D.O.C Extra Dry",1.5,11.5,413.0,1,"861a68dd"],["spumant","Vin Spumant Ferrari Maximum Rose",0.75,11.5,845.0,1,"5dbf786d"],["spumant","Vin Spumant Chandon Brut Argentina",0.75,12.0,365.0,0,"daf6f10f"],["spumant","Vin Spumant Chandon Rose Argentina",0.75,12.0,365.0,0,"5fb2ba3b"],["spumant","Șampanie Ruinart Blanc de Blancs Brut",0.75,12.0,2029.0,1,"34e0bd25"],["spumant","Vin Spumant Cricova Cuvee Prestige Rosu Dulce",0.75,11.5,269.0,1,"67f7858b"],["spumant","Șampanie Ruinart Brut",0.75,12.0,1415.0,1,"aed01e22"],["spumant","Sampanie Ruinart Rose",0.75,12.0,2115.0,1,"4ef49cad"],["spumant","Vin spumant Cricova Crisecco, brut, alb",0.75,11.5,99.9,1,"765696cd"],["spumant","Vin Spumant Apriori Dry White Fetească Albă",0.25,11.5,24.9,1,"e654e3c5"],["spumant","Vin Spumant Cricova Moldova Alb D/sec",0.75,11.5,179.0,1,"83d02038"],["spumant","Vin Spumant Cricova Basarabia Alb Sec",0.75,11.5,179.0,1,"f66d8817"],["spumant","Vin Spumant Cricova de Calitate Rosu Dulce",0.75,11.5,179.0,1,"83d523bf"],["spumant","Vin Spumant Cuvee de Purcari Alb Brut Cutie",0.75,11.5,378.0,1,"71034217"],["spumant","Vin Spumant Cricova Muscat Alb Demisec",0.75,11.5,84.9,1,"1c54262d"],["spumant","Vin Spumos Maurt Dulce Muscat",0.75,9.0,78.5,1,"98884009"],["spumant","Vin Spumant Chardonnay Brut Dargent Brut Alb",1.5,11.5,399.0,0,"89a9b3cc"],["spumant","Vin Spumant Cricova Muscat Alb Dulce",0.75,11.5,84.9,1,"f5afce97"],["spumant","Prosecco Maestro Millesimato D.O.C Brut",0.75,11.5,209.0,1,"4e53a775"],["spumant","Vin Spumant Cricova Sovetscoe Alb Demisec",0.75,11.5,49.9,1,"155edd4a"],["spumant","Vin spumant J.P. Chenet Ice Edition, demisec, roz",0.75,11.5,129.0,1,"e6cfcd4f"],["spumant","Vin Spumant JP. Chenet Ice Edition Roz Demisec",1.5,11.0,269.0,0,"31b8ff91"],["spumant","Vin spumant Cricova Lacrima Dulce, demisec, alb",0.75,11.5,96.9,1,"34c18e24"],["spumant","Vin Spumant Ungheni the Bridge Alb Brut",0.75,11.5,97.9,1,"764585d9"],["spumant","Vin Spumant Cricova Alb Dulce",0.75,11.5,62.9,1,"145f4e33"],["spumant","Vin Spumant JP. Chenet Ice Edition Alb Demisec",1.5,11.0,269.0,0,"9cb511ea"],["spumant","Vin Spumant Corte delle Calli Bianco Frizzante Piu Screw Cap",0.75,11.5,109.0,1,"c9faedea"],["spumant","Vin Spumant Jp.chenet Divine Pinot Noir Rose D/sec",0.75,11.5,265.0,1,"86dcdd13"],["spumant","Vin spumant Corte delle Calli Gran Cuvée, extra dry, alb",0.75,11.5,116.0,1,"1cc6a486"],["spumant","Vin Spumant Ungheni the Bridge Alb Dulce",0.75,11.5,89.9,1,"fbe7ad5f"],["spumant","Vin spumant Cricova de Calitate, brut, alb",0.75,11.5,179.0,1,"32e2b316"],["spumant","Vin Spumant Apriori Rose Frizzante Dulce",0.75,7.0,86.9,0,"f2cbb35e"],["spumant","Vin Spumant Chateau Vartely Pinot Noir Rose Sec",0.75,11.5,99.9,1,"495ca644"],["spumant","Vin Spumant Cricova Roz Demisec",0.75,11.5,62.9,1,"fcfd984a"],["spumant","Vin spumant Château Vartely Inspiro Fetească Regală, brut, alb",0.75,11.5,99.9,1,"dc546453"],["spumant","Vin spumant Cricova, demisec, alb",0.75,11.5,62.9,1,"bf69ccc2"],["spumant","Vin spumant Château Vartely Inspiro Muscat, dulce, alb",0.75,11.5,99.9,1,"fb7a054d"],["spumant","Vin Spumant Grape Angel Secret Blend Blanc de Noir Alb Brut",0.75,11.5,149.0,1,"2d9f4d8d"],["spumant","Vin Spumant Apriori Dry White Glera doză",0.25,11.5,24.9,1,"ea9ea91f"],["spumant","Vin Spumant Maurt Bacio di Bolle Grande Cuvee",0.75,11.5,109.0,1,"3325b217"],["spumant","Vin Spumant Apriori Sweet White Muscat doză",0.25,11.5,24.9,1,"32eda9b4"],["spumant","Vin Spumos Maurt Muscatnoe Alb Dulce",0.75,9.0,78.5,1,"81753ed2"],["spumant","Vin Spumant Apriori Sweet Rose Muscat doză",0.25,11.5,24.9,1,"ad098b7f"],["spumant","Vin Spumant Bottega Salmanazar Prosecco Gold DOC Alb Brut",9.0,11.0,16150.0,0,"e68f13f2"],["spumant","Prosecco Bottega Gold DOC, brut, alb, Mathusalem",6.0,11.5,10615.0,1,"fe87220e"],["spumant","Vin Spumos Maurt Alb Dulce",0.75,9.0,78.5,1,"98762927"],["spumant","Vin Spumant Mondoro Asti Alb Dulce",0.75,7.0,263.0,1,"e2cac0cc"],["spumant","Vin spumant Rădăcini Blanc de Cabernet, brut, alb",0.75,11.5,114.0,1,"4d6f0664"],["spumant","Vin spumant Aurelius Muscat, dulce, alb, ediție limitată",0.75,11.5,245.0,1,"be51f8d1"],["spumant","Vin Spumant Purcari Feteasca Alba Alb Brut",0.75,11.5,285.0,1,"d54162b"],["spumant","Vin Spumant Cricova Alb Dulce Legenda",0.75,11.5,84.9,1,"e304eb74"],["spumant","Vin spumant Cuvée de Purcari, brut, alb",0.75,11.5,293.0,1,"d5036794"],["spumant","Vin Spumant Cricova Traminer Roz Demisec",0.75,11.5,89.9,1,"a784d0f6"],["spumant","Vin spumant Purcari Cuvée de Purcari Rosé, brut, roz",0.75,11.5,329.0,1,"f01206d5"],["spumant","Prosecco Martini DOC, alb",0.75,11.5,229.0,1,"a01fc936"],["spumant","Vin Spumant Prosecco Valdobbiadene Superiore Mionetto Extra Sec",0.75,11.5,233.0,1,"11f7700d"],["spumant","Vin spumant Brut d’Argent Chardonnay, brut, alb, + 2 pahare",0.75,11.5,265.0,1,"2c6b8928"],["slab","Băutură slab alcoolică Mi Piace La Fragola, dulce",0.75,7.0,79.9,1,"5d90f27"],["spumant","Vin Spumant Prosecco Valdobbiadene Superiore Mionetto Extra Yellow",0.75,11.5,228.0,1,"a854a491"],["slab","Băutură slab alcoolică Mi Piace La Pesca, dulce",0.75,7.0,79.9,1,"ad21787e"],["slab","Băutură slab alcoolică Mi Piace Moscato, dulce, alb",0.75,7.0,79.9,1,"54bd1d6e"],["spumant","Prosecco Mionetto Treviso DOC, brut, alb",0.75,11.5,199.0,1,"7c301255"],["spumant","Vin Spumant Pierre Monte Alb Brut",0.75,11.5,83.9,1,"d88ec11a"],["spumant","Vin Spumant Pierre Monte Alb Demisec",0.75,11.5,83.9,1,"c086fc4f"],["spumant","Vin spumant Mileștii Mici, demisec, alb",0.75,11.5,73.9,1,"aa8c920"],["spumant","Vin spumant Mileștii Mici, dulce, alb",0.75,11.5,73.9,1,"3f3bec18"],["spumant","Vin Spumant Lacrima Dulce Alcohol Free",0.75,0.0,132.0,1,"a7e6d332"],["spumant","Vin Spumant Pierre Monte Muscat Alb Dulce",0.75,11.5,83.9,1,"c5d837c1"],["spumant","Vin Spumant Cinzano Dry Edition Alb Sec",0.75,11.5,135.0,1,"22fea4d2"],["spumant","Vin Spumant Maurt Aurelius Feteasca Regala de Calitate Alb Brut",0.75,11.5,245.0,1,"ab3f51b4"],["spumant","Spumant Radacini Chardonnay extrabrut alb 0,75",0.75,11.5,114.0,1,"cfa94291"],["spumant","Vin spumant Maestro Viorica, extra dry, alb",0.75,11.5,199.0,1,"b3f8b8c3"],["spumant","Vin Spumant Brut Maurt Bacio di Bolle Grande Cuvee Gold Edition",0.75,11.5,482.0,1,"9d5e0586"],["spumant","Vin Spumant Maurt Aurelius Alb Extra Brut Glera Limited Edition",0.75,11.5,222.0,1,"6753b110"],["spumant","Vin Spumant Aurelius Glera Brut Nature Alb Limit.edition",0.75,11.5,245.0,1,"c2cac39d"],["spumant","Vin Spumant Maurt Aurelius Brut Nat.rose Limited Edition",0.75,11.5,245.0,1,"e98d51e8"],["spumant","Vin Spumant Maurt Aurelius Muscat Roz Dulce Limited",0.75,11.5,245.0,1,"a2d2258a"],["spumant","Vin spumant Mileștii Mici Cuvée des Fleurs, brut nature, alb",0.75,11.5,183.0,1,"94598aad"],["spumant","Vin Spumant Milestii Mici Cuvee des Fleurs Alb Demisec",0.75,11.5,183.0,1,"4a5144d2"],["spumant","Vin Spumant Cricova Premium Cuvee Alb Brut",0.75,11.5,529.0,1,"ead1bd1e"],["spumant","Vin spumant roz brut Cricova Premium Cuvee",0.75,11.5,529.0,1,"67fef853"],["spumant","Vin spumant Bostavan Dor Rosé, demisec, roz",0.75,11.5,75.9,1,"9e08c9f4"],["spumant","Vin spumant Cricova Lacrima Dulce, dulce, alb",0.75,11.5,96.9,1,"6220121c"],["spumant","Vin Spumant Alb Dulce Dor Bostavan",0.75,11.5,75.9,1,"5e949520"],["spumant","Vin Spumant Bostavan Dor Muscat Dulce",0.75,11.5,75.9,1,"5b08322"],["spumant","Vin Spumant Stella Rosa Alb Brut",0.75,11.5,125.0,1,"a3c6b51d"],["spumant","Vin Spumant Stella Rosa Moscato Rose Demisec",0.75,7.0,125.0,1,"e0138f9d"],["spumant","Vin Spumant Stella Rosa Moscato Alb Dulce",0.75,7.0,125.0,1,"aebaac3c"],["spumant","Vin Spumant Maurt Bacio di Bolle Grande Cuvee D/sec Alb",0.75,11.5,109.0,1,"6fdabfd4"],["spumant","Vin Spumant Maurt Bacio di Bolle Grande Cuvee D/sec Rose",0.75,11.5,109.0,1,"f7d6353b"],["spumant","Vin Spumant Maurt Aurelius Roz Brut Limit.edition",0.75,11.5,245.0,1,"2db2e403"],["spumant","VIN SPUMANT Alb Dulce Viogner Kvint",0.75,11.5,99.9,1,"e12441d1"],["spumant","Vin Spumant Carlevana Viviano Muscat Alb Dulce",0.75,11.5,99.9,0,"88afb8f8"],["spumant","Prosecco Bottega Poeti DOC Rose Brut",0.75,11.5,225.0,0,"2cd9cae2"],["spumant","Vin Spumant Lacrima Dulce Light Roz",0.75,9.0,85.9,1,"24ee0e93"],["spumant","Vin Spumant Lacrima Dulce Alb Dulce Light",0.75,9.0,83.9,1,"d7f6b5e1"],["spumant","Șampanie Dom Pérignon Brut, în cutie",0.75,12.0,5399.0,1,"cae1656b"],["vin","Vin Petiant Cricova Alb Demidulce",0.75,12.5,49.9,1,"ec00038a"],["vin","Vin Petiant Cricova Roz Demidulce",0.75,12.5,49.9,1,"ae82649"],["spumant","Vin Spumant Tomai Black Alb Dulce",0.75,11.5,78.9,1,"9f43fcfe"],["spumant","Prosecco Piccini Venetian Dress, extra dry, alb",0.75,11.5,210.0,1,"eb257026"],["spumant","Prosecco Piccini DOC Extra Sec Alb",0.75,11.0,167.0,0,"913f56ae"],["vin","Vin perlant Kazayak, demidulce, alb",0.75,12.5,59.9,1,"d6e84f2e"],["spumant","Prosecco Bottega Poeti Spum. DOC Brut",1.5,11.0,699.0,0,"8709e5b"],["spumant","Vin spumant Maestro Citron Magaratcha, brut, alb",0.75,11.5,199.0,1,"987b7f2d"],["spumant","Șampanie Moët & Chandon Brut Impérial, brut, alb",0.75,12.0,1129.0,1,"ae2cf45a"],["spumant","Vin Spumant Cinzano Sweet Edition Alb Dulce",0.75,9.5,135.0,0,"18d51faf"],["spumant","Vin Spumant Radacini Pinot Grigio Rose Extra Brut",0.75,11.5,114.0,1,"d1ffab2f"],["spumant","Prosecco Cinzano DOC Alb Sec",0.75,11.0,199.0,0,"df5e0271"],["spumant","Vin Spumant Cinzano Rose Sweet",0.75,9.5,135.0,0,"b8a5e895"],["spumant","Vin Spumant Lacrima Dulce Rose Dulce",0.75,11.5,96.9,1,"330e24fe"],["spumant","Vin Spumant Poiana Muscat",0.75,11.5,189.9,1,"9ec75146"],["spumant","Vin spumant Maestro Blanc de Blancs, extra brut, alb",0.75,11.5,199.0,1,"5896dfac"],["spumant","Vin spumant Maestro Cuvée Blanc, brut, alb",0.75,11.5,199.0,1,"180ff59c"],["spumant","Vin Spumant Poiana Brut",0.75,11.5,209.0,1,"9363dc47"],["spumant","Vin Spumant Cutie Cadou Piper Heidsieck Brut Non Vintage Alb",0.75,12.0,1019.0,0,"f869125a"],["spumant","Vin Spumant Cricova Crisecco Roz Brut",0.75,11.5,99.9,1,"e4009cd8"],["spumant","Vin spumant Tomai Black, brut, alb",0.75,11.5,78.9,1,"fdf776c4"],["spumant","Vin Spumant Apriori Feteasca Alba Alb Brut",0.75,11.5,99.9,1,"5031855d"],["spumant","Vin Spumant Cinzano To-spritz Dry",0.75,11.5,135.0,1,"c8a79bf0"],["spumant","Vin Spumant Apriori Rosato Dolce Rose Dulce",0.75,11.5,94.9,1,"85632b12"],["spumant","Vin Spumant Apriori Moscato Dolce Alb Dulce",0.75,7.0,94.9,0,"388f26b"],["spumant","Vin spumant J.P. Chenet Ice Edition, demisec, alb",0.75,11.5,129.0,1,"ca9661ec"],["spumant","Vin spumant Rădăcini Viorica, brut, alb",0.75,11.5,114.0,1,"3633c133"],["spumant","Vin Spumant Buket Moldavii Muscatnoe D/sec",0.75,11.5,109.0,1,"4ef8dfdf"],["spumant","Vin Spumant Jules Larose Alb Brut",0.75,11.5,89.9,1,"4ace528d"],["spumant","Vin Spumant Jules Larose Alb Demisec",0.75,11.5,89.9,1,"146acae1"],["spumant","Vin Spumant Cricova Premium Cuvee Gold Alb Brut",0.75,11.5,819.0,1,"dfec847e"],["spumant","Prosecco Perlino DOC Extra Dry Rose",0.75,11.0,139.0,0,"1f308ee7"],["spumant","Prosecco Maestro Millesimato DOC, extra dry, alb",0.75,11.5,209.0,1,"8bc153f0"],["spumant","Vin Spumant Cricova Crisecco Gold Alb Brut",0.75,11.5,128.0,1,"41a70265"],["spumant","Vin Spumant Vinaria Din Vale Muscat Alb Demisec",0.75,11.5,139.0,1,"9b14e2e9"],["spumant","Vin Spumant Wine Crime Sparkling Rose Brut",0.75,11.5,125.0,1,"a03cf111"],["spumant","Vin Spumant Pinot Noir Brut Dargent D/s Roz",0.75,11.0,189.0,0,"f4c1b0ba"],["spumant","Vin Spumant Piccini Generazione Zero",0.75,0.0,145.0,0,"b5e2ca6d"],["spumant","Vin Spumant Pinot Noir Brut Dargent Brut Roz",0.75,11.5,189.0,0,"54bb960d"],["spumant","Prosecco Treviso Mionetto Extra Orange Alb Brut",0.2,11.5,75.9,1,"29ae2439"],["spumant","Vin Spumant Chardonnay Brut Dargent D/s Alb",0.75,11.0,196.0,0,"f7206347"],["spumant","Șampanie Moët & Chandon Nectar Impérial, demi-sec",0.75,12.0,1259.0,1,"55c2bef"],["spumant","Vin Spumant Legenda Moldovei Alb Dulce",0.75,11.5,83.9,1,"fcb6690"],["spumant","Vin Spumant Chardonnay Brut Dargent Brut Alb",0.75,11.5,179.0,0,"9c600961"],["spumant","Vin Spumant Bostavan Dor Rose Brut",0.75,11.5,75.9,1,"506c1d0"],["spumant","Vin Spumant Viorica Alb Demisec",0.75,11.5,99.9,1,"61f1f61b"],["spumant","Vin Spumant Legenda Moldovei Alb D/sec",0.75,11.5,83.9,1,"4886cc36"],["spumant","Vin Spumant Legenda Moldovei Alb Brut",0.75,11.5,79.9,1,"8e3b1bcf"],["spumant","Vin Spumant Maurt Piersic",0.75,9.0,78.5,1,"688078b7"],["spumant","Șampanie Moët & Chandon Impérial Brut, în cutie",0.75,12.0,1169.0,1,"2919ff70"],["spumant","Vin spumant J.P. Chenet Original Rosé, sec, roz",0.75,11.5,125.0,1,"2b348c25"],["spumant","Sampanie Moet & Chandon Imperial Rose Brut",0.75,12.0,1415.0,1,"f26bc332"],["spumant","Vin spumant J.P. Chenet Original, demisec, alb",0.75,11.5,125.0,1,"f829564b"],["spumant","Champagne Veuve Clicquot Rose",0.75,12.0,1585.0,1,"acd26aee"],["spumant","Vin spumant Rădăcini Vero di Moscato, dulce, alb",0.75,7.0,94.9,1,"6289ec2c"],["spumant","Șampanie Veuve Clicquot Ponsardin, brut, alb",0.75,12.0,1355.0,1,"9d0095aa"],["spumant","Vin Spumant JP. Chenet Divine Chardonnay Alb Brut",0.75,12.0,289.0,0,"4057e2cf"],["spumant","Vin spumant Wine Crime Naughty, sec, alb",0.75,11.5,121.0,1,"2f5a229"],["spumant","Vin spumant Wine Crime Flirty, dulce, roz",0.75,11.5,121.0,1,"7c5d02ca"],["spumant","Prosecco Bottega Stardust DOC Alb Brut Cutie",0.75,11.0,2075.0,0,"70890035"],["bere","Bere Guinness doză",0.44,4.2,34.99,1,"918420bf"],["bere","Bere Blonda Cahul Light sticlă",0.5,3.9,15.99,0,"447bfe98"],["bere","Bere Blonda Piwny Kubek sticlă",0.5,4.1,22.5,0,"8d04b3c6"],["bere","Bere Chisinau Blonda",1.3,4.8,42.9,1,"c1b0927f"],["bere","Bere Belii Medvedi Blonda Rozliv sticlă",0.45,4.8,22.5,1,"8594ba6c"],["bere","Bere Cernigovskoe Blonda",2.25,4.8,49.99,1,"3f07d158"],["bere","Bere Belii Medvedi Blonda Rozliv PET",2.2,4.8,63.9,1,"50a759cb"],["bere","Bere Piwny Kubek PET",1.0,4.1,21.99,0,"a3978dc6"],["bere","Bere Blonda Lvivske Svetloe PET",2.35,4.8,65.9,1,"d7e0f4c1"],["bere","Bere Piwny Kubek Doza",0.5,4.1,22.5,0,"a369b83f"],["bere","Bere Carlsberg Blonda sticlă",0.45,5.0,22.99,1,"cdb96f47"],["bere","Bere Schofferhofer Hefeweizen Nefiltrat sticlă",0.5,4.8,43.9,1,"2c8b7ea6"],["bere","Bere Jigulevskoe Bocicovoe Blonda PET",2.2,4.8,55.99,1,"589f28ce"],["bere","Bere Bernard Amber Lager sticlă",0.5,4.8,49.9,1,"fe137dbc"],["bere","Bere Bernard Celebration Lager sticlă",0.5,4.8,49.9,1,"4c7097f9"],["bere","Bere Blonda Lvivske PET",1.42,4.8,52.9,1,"454c138d"],["bere","Bere Lvivske doză",0.48,4.8,23.9,1,"8f58a477"],["bere","Bere Timisoreana Blonda PET",2.2,4.8,73.9,1,"5631902e"],["bere","Bere Salitos Cerveza sticlă",0.33,4.7,23.99,0,"8dc4cb53"],["bere","Bere Zlata Brama Blonda sticlă",0.45,4.8,18.99,1,"6220f6c7"],["bere","Bere Chisinau Blonda sticlă",0.5,4.8,23.5,1,"8bbe41cb"],["bere","Bere Velkopopovicky Kozel Blonda sticlă",0.5,4.7,31.9,1,"58e431b8"],["bere","Bere Golden Castle, blondă, doză",0.5,4.8,22.9,1,"4a8cabd3"],["bere","Bere Czesky, blondă, doză",0.5,4.8,24.9,1,"fa5953cd"],["bere","Bere Corona Extra, blondă, doză",0.33,4.7,33.9,1,"b13f94aa"],["bere","Bere Volfas Engelman Rinktinis, blondă, doză",0.568,4.8,32.9,1,"17068771"],["bere","Bere Kronenbourg 1664 Rosé, doză",0.33,4.8,27.9,1,"a4494e18"],["bere","Bere Kyivske Draft, blondă, doză",0.5,4.8,19.5,1,"eb314fb4"],["bere","Bere Kronenbourg 1664 Rosé, sticlă",0.46,4.8,37.9,1,"4d49b272"],["bere","Bere Kyivske Draft, blondă, PET",1.0,4.8,26.9,1,"49564d61"],["bere","Bere Volfas Engelman Balta Pinta, de grâu, nefiltrată, doză",0.568,4.8,32.9,1,"6ad4c1ff"],["bere","Bere Kyivske Draft Blonda PET",2.35,5.0,58.5,0,"87d5d000"],["bere","Bere Volfas Engelman IPA, blondă, doză",0.568,4.8,36.9,1,"cad98d01"],["bere","Bere Beck's, blondă, doză",0.5,4.7,39.9,1,"5c035243"],["bere","Bere Beck's, blondă, sticlă",0.5,4.7,26.99,1,"ad7a2f13"],["bere","Bere Bergenbier, blondă, sticlă",0.5,4.8,31.9,1,"72c80058"],["bere","Bere Bergenbier, blondă, PET",2.5,4.8,72.9,1,"6e6c7e3c"],["bere","Bere Gold Beer Premium, blondă, sticlă",0.5,4.8,23.9,1,"87d491fb"],["bere","Bere Miller Genuine Draft, blondă, sticlă",0.33,4.8,39.9,1,"7da02d6c"],["bere","Bere Stella Artois, blondă, sticlă",0.33,5.0,36.9,1,"74d4b849"],["bere","Bere Stella Artois Pasteurita Filtrata sticlă",0.66,5.0,48.9,0,"3763f46f"],["bere","Bere Budweiser Budvar",0.5,5.0,39.9,1,"a71e87b9"],["bere","Bere Kievscoe Razlivnoe Blonda PET",2.35,4.8,42.99,1,"406dd132"],["bere","Bere Budweiser Budwar Bruna",0.5,5.0,39.9,1,"73658b8d"],["bere","Bere Cernigovskoe Blonda doză",0.5,4.8,21.5,1,"19aa5e3"],["bere","Bere Orasul Vechi Bruna PET",1.0,4.8,29.5,1,"b74182ff"],["bere","Bere Orasul Vechi Blonda PET",1.0,4.8,29.5,1,"edc1d59d"],["bere","Bere Heineken Blonda sticlă",0.33,5.0,30.5,1,"69dd0a81"],["bere","Bere Finch Blonda PET",2.2,4.8,67.9,1,"5ba66862"],["bere","Bere Finch Blonda sticlă",0.5,4.8,23.5,1,"ee14a517"],["bere","Bere Oboloni Blonda PET",2.35,4.8,32.99,1,"c3885f"],["bere","Bere Carlsberg doză 4-pack",2.0,5.0,95.99,1,"c00249d2"],["bere","Bere Baltika №3 Klasiceskoe sticlă",0.5,4.8,26.5,1,"dfa957f7"],["bere","Bere Baltika №7 Miagkoe sticlă",0.5,5.4,26.5,1,"f18fc818"],["bere","Bere Volfas Engelman Horn Disel Strong Cut",0.568,8.0,32.9,1,"9eea8747"],["bere","Bere Volfas Engelman Horn Disel Cutie",0.568,6.0,32.9,0,"6693a365"],["bere","Bere Baltika №9 sticlă",0.5,8.0,26.5,1,"134f65e3"],["bere","Bere Kronenbourg Blanc 1664 doză",0.5,4.8,37.9,1,"12a7f02c"],["bere","Bere Sternburg Lager Blonda doză",0.5,5.0,17.9,0,"92366b4c"],["bere","Bere Sternburg Wheat Blonda doză",0.5,4.8,17.9,0,"f177db35"],["bere","Bere Zlata Praha, blondă, sticlă",0.5,4.8,27.9,1,"ce5c2aaf"],["bere","Bere Obolon, blondă, sticlă",0.5,4.8,27.5,1,"cf2a9d4a"],["bere","Bere Obolon Premium, blondă, doză",0.5,4.8,20.9,1,"fe22e92a"],["bere","Bere Obolon, blondă, doză",0.5,4.8,19.5,1,"fb88fb5c"],["bere","Bere Obolon, blondă, PET",1.0,4.8,29.5,1,"2a98fffb"],["bere","Bere Bitburger Premium Pils, blondă, sticlă",0.33,4.8,25.9,1,"e1526862"],["bere","Bere Bitburger Premium Pils, blondă, sticlă",0.5,4.8,35.9,1,"baf9af6b"],["bere","Bere Birra Moretti, blondă",0.33,4.7,23.5,1,"e77847ef"],["bere","Bere Bitburger Premium Pils, blondă, doză",0.5,4.8,29.9,1,"ce1302a"],["bere","Bere Asbeer, blondă, doză",0.5,4.8,19.5,1,"41e9ccd8"],["bere","Bere Skol, blondă, doză",0.5,4.8,23.5,1,"624192f9"],["bere","Bere Skol, blondă",2.5,4.8,69.9,1,"858e6ddd"],["bere","Bere Efes Blanche, de grâu, sticlă",0.5,4.8,30.9,1,"d664ae88"],["bere","Bere Kronenbourg 1664 Blanc, de grâu, doză",0.33,4.8,27.9,1,"3ed87a2a"],["bere","Bere Beer Burg, blondă, PET",2.2,4.8,60.5,1,"d00b5417"],["bere","Bere Zimbru, blondă, doză",0.5,4.8,19.5,1,"ab38cd29"],["bere","Bere Beer Burg, blondă, sticlă",0.5,4.8,23.9,1,"67baa98d"],["bere","Bere Albrau Premium Pils, blondă, doză",0.5,4.8,19.5,1,"af8b1f37"],["bere","Bere Corona Extra sticlă",0.355,4.7,35.9,1,"e4c167f4"],["bere","Bere Estrella Damm, blondă, sticlă",0.33,4.8,33.5,1,"a3643c00"],["bere","Bere Franziskaner Weisse Blonda sticlă",0.5,5.0,49.9,1,"d10c4b25"],["bere","Bere Krusovice Imperial sticlă",0.5,5.0,34.9,1,"84535c35"],["bere","Bere Hoegaarden Blonda Nefiltrata sticlă",0.33,4.7,36.9,1,"f8950329"],["bere","Bere Tuborg Green doză 4-pack",2.0,4.7,115.0,1,"90d01226"],["bere","Bere Radler Natural sticlă",0.45,2.5,25.9,1,"a3f0fe66"],["bere","Bere Blonda Jigulevskoe",2.5,4.8,58.9,1,"e4382136"],["bere","Bere Leffe Blonde sticlă",0.33,6.6,41.9,1,"4b51f5ae"],["bere","Bere Chisinau Blonda PET",0.9,4.8,30.99,1,"b9f8768a"],["bere","Bere Spaten Munchner Hell sticlă",0.5,4.8,42.99,1,"b354388f"],["bere","Bere Leffe Bruna sticlă",0.33,6.6,41.9,1,"5d1c1615"],["bere","Bere Orasul Vechi Blonda PET",2.2,4.8,38.99,1,"1890ae8"],["bere","Bere Orasul Vechi Blonda sticlă",0.5,4.8,22.9,1,"feac0f67"],["bere","Bere Starii Melnik Iz Bocionka Miagkoe sticlă",0.5,4.8,29.5,1,"e4b437a2"],["bere","Bere Orasul Vechi Bruna PET",2.2,4.8,38.99,1,"5b095d8a"],["bere","Bere Blonda Bremen Pilsener PET",2.2,4.8,63.9,1,"d72872b6"],["bere","Bere Belii Medvedi Blonda Rozliv PET",0.9,4.8,26.99,1,"c4f1542d"],["bere","Bere Baltika Kuler sticlă",0.47,4.8,26.5,1,"f2d9aafd"],["bere","Bere Bergenbier Pasteurizata Filtrata doză",0.5,5.0,27.9,0,"deee274b"],["bere","Bere Crew Maiden Trooper doză",0.5,5.0,37.5,0,"a2a3129c"],["bere","Bere Carlsberg doză",0.5,5.0,31.9,1,"256053cb"],["bere","Bere Robert Doms Belgiiskii, de grâu, nefiltrată, sticlă",0.5,4.8,30.9,1,"14340e12"],["bere","Bere Persha Pryvatna Brovarnya Svejyi Rozliv, blondă, doză",0.5,4.8,20.5,1,"53f37b8a"],["bere","Bere Zakarpatske Original, blondă, PET",2.0,4.8,57.9,1,"2f5bf7e4"],["bere","Bere Zakarpatske Original, blondă, doză",0.5,4.8,20.9,1,"64309a4f"],["bere","Bere Zakarpatske Original, blondă, sticlă",0.5,4.8,23.9,1,"947012ae"],["bere","Bere Persha Pryvatna Brovarnya Bocikovoe, blondă, nefiltrată, sticlă",0.5,4.8,24.9,1,"9c35a928"],["bere","Bere Cahul Lager, blondă",1.0,4.8,30.9,1,"7240b0d"],["bere","Bere Persha Pryvatna Brovarnya Bocikovoe, blondă, PET",2.0,4.8,57.9,1,"9542002a"],["bere","Bere Cahul Lager, blondă",2.2,4.8,59.9,1,"eb6cd478"],["bere","Bere Persha Pryvatna Brovarnya Bocikovoe, blondă, doză",0.5,4.8,21.9,1,"18566c0f"],["bere","Bere Bakalář Premium Lager, blondă, sticlă",0.5,4.8,39.0,1,"35b9d49b"],["bere","Bere Ceaica Chernomorska, blondă, nefiltrată, doză",0.5,4.8,20.9,1,"2c800d9a"],["bere","Bere Bakalář Dry Hopped, blondă, sticlă",0.5,4.8,39.5,1,"93319e55"],["bere","Bere Holsten Pilsner, blondă, doză",0.48,4.8,27.9,1,"8ee49288"],["bere","Bere Cahul Light, blondă",2.2,4.8,57.5,1,"ae2f01e3"],["bere","Bere Ceaica Chernomorska, blondă, doză",0.5,4.8,20.5,1,"2e2c2b41"],["bere","Bere Holsten Pilsner, blondă, PET",1.96,4.8,70.9,1,"3fa7b87f"],["bere","Bere Ceaica Chernomorska, blondă, sticlă",0.45,4.8,21.9,1,"4f110ae4"],["bere","Bere Cahul Light, blondă",1.0,4.8,29.5,1,"4267de96"],["bere","Bere Heisenberg Premium, blondă, sticlă",0.5,4.8,23.95,1,"ddf7bb4d"],["bere","Bere Beermix Speciala Lamiie doză",0.5,2.5,21.9,0,"913ba48c"],["bere","Bere Tuborg Green doză",0.5,4.7,21.59,1,"f4d57c19"],["bere","Bere Tuborg Green sticlă",0.5,4.7,32.9,1,"31f83fd4"],["bere","Bere Zlata Brama Blonda doză",0.5,4.8,22.9,1,"474c1cdb"],["bere","Bere Kronenbourg Blanc 1664 sticlă",0.46,4.8,37.9,1,"8eb1456d"],["bere","Bere Zlata Brama Blonda PET",1.75,5.0,49.9,0,"5d71e985"],["bere","Bere Jiguleovskoe Pasteurizata Blonda",0.5,5.5,27.0,0,"baafaac2"],["bere","Bere Timisoreana Blonda doză",0.5,4.8,26.9,1,"2dceb904"],["bere","Bere Jiguleovskoe Rjanoe Pasteurizata",0.5,5.0,27.0,0,"e1a1d5df"],["bere","Bere Velkopopovicky Kozel Blonda doză",0.5,4.7,31.9,1,"e293920d"],["bere","Bere Jiguleovskoe Razlivnoe PET",2.2,4.8,50.5,1,"c25776ad"],["bere","Bere Velkopopovicky Kozel Bruna doză",0.5,4.7,31.9,1,"4c7eecc8"],["bere","Bere Erdinger Dunkel sticlă",0.5,5.0,45.9,1,"a6becf5"],["bere","Bere Volfas Engelman Blanc doză",0.568,4.8,32.9,1,"78eab7b3"],["bere","Bere Lvivske PET",1.12,4.8,44.9,1,"97540f2f"],["bere","Bere Blonda Lvivske PET",2.25,4.8,72.9,1,"9fc78e46"],["bere","Bere Timisoreana Blonda PET",0.9,4.8,37.9,1,"c2679dc8"],["bere","Bere Staropramen Blonda doză",0.5,5.0,31.9,1,"ffa74db1"],["bere","Bere Budweiser Budwar doză",0.5,5.0,37.9,1,"8040a2cc"],["bere","Bere Staropramen Pasteurizata Filtrata Blonda sticlă",0.5,5.0,26.59,0,"67dd7a07"],["bere","Bere Jigulevskoe, blondă, PET",1.0,4.8,30.5,1,"42bb79f5"],["bere","Bere Jiguli Barnoe 1968, blondă, sticlă",0.45,4.8,23.9,1,"2639a58d"],["bere","Bere Stella Artois, blondă, doză",0.5,5.0,39.5,1,"1fba6929"],["bere","Bere Jigulevskoe, blondă, PET",2.2,4.8,60.9,1,"aef3a680"],["bere","Bere Jigulevskoe Spetsialnoe, blondă, sticlă",0.5,4.8,24.9,1,"4686487c"],["bere","Bere Primator Mother In Law, blondă, doză",0.5,4.8,46.9,1,"43095ed1"],["bere","Bere Stella Artois, blondă, sticlă",0.5,5.0,42.9,1,"836306a3"],["bere","Bere Chișinău, blondă, doză",0.5,4.8,23.5,1,"b5670653"],["bere","Bere Radler Natural, doză",0.5,2.5,25.9,1,"a5a44f49"],["bere","Bere Warsteiner Premium, blondă, sticlă",0.33,4.8,36.9,1,"b7756b12"],["bere","Bere Koronet Lager, blondă, doză",0.45,4.8,23.9,1,"fa378f9"],["bere","Bere Chișinău, blondă, PET",2.35,4.8,67.9,1,"d98399e7"],["bere","Bere Chernigivske Beloe, de grâu, doză",0.5,4.8,21.5,1,"fe7c28fc"],["bere","Bere Erdinger Weissbier, de grâu, sticlă",0.5,5.0,45.9,1,"a650d2c0"],["bere","Bere Slavutych Premium, blondă, PET",2.5,4.8,62.9,1,"4abac3d8"],["bere","Bere Efes Pilsener, blondă, sticlă",0.5,4.8,30.9,1,"c475624d"],["bere","Bere Lev, brună, doză",0.48,4.8,27.9,1,"951ca12b"],["bere","Bere Efes Pilsener, blondă, doză",0.5,4.8,25.99,1,"65efea4f"],["bere","Bere Primator Weizenbier, de grâu, sticlă",0.5,4.8,43.9,1,"36b1ad58"],["bere","Bere Blonda Primator Mother in Law sticlă",0.5,4.7,38.99,0,"3b848fd1"],["bere","Bere Blonda Primator India Pale Ale sticlă",0.5,6.5,52.9,0,"82e69753"],["bere","Bere Velkopopovicky Kozel Bruna sticlă",0.5,4.7,22.99,1,"59d4e065"],["bere","Bere Timisoreana Blonda sticlă",0.5,4.8,21.99,1,"259abcec"],["bere","Bere Jigulevskoe Bocicovoe Blonda sticlă",0.45,4.8,26.9,1,"fe3d7cf0"],["bere","Bere Zlata Praha Blonda doză",0.5,4.8,18.99,1,"5ae3fc36"],["bere","Bere Chisinau Speciala Tare Blonda",0.5,8.0,25.5,1,"133fa9de"],["bere","Bere Blonda Lvivske Soft sticlă",0.45,4.8,29.9,1,"77455c5a"],["bere","Bere Camarad Original PET",2.2,4.8,62.9,1,"ac0d1bdd"],["bere","Bere Finch Blonda PET",0.9,4.8,35.9,1,"cff06584"],["bere","Bere Oboloni Jigulevscoe Blonda PET",1.0,4.8,22.99,1,"1141099d"],["bere","Bere Extrakrepcoie Desant PET",1.25,8.0,28.99,1,"7a405c6e"],["bere","Bere Blonda Piwny Kubek",2.4,4.8,55.9,1,"c927dff4"],["bere","Bere Estrella Damm Blonda doză",0.5,4.8,32.5,1,"4471a6ec"],["slab","Perlino Fragolino Bianco Baut.arom.pe Baza de Vin",0.75,6.95,95.9,0,"eaaa11d1"],["slab","Băutură aromatizată pe bază de vin Perlino Fragolino Rosso, dulce",0.75,7.0,95.9,1,"389bda4a"],["slab","Perlino Fragolino Rose Baut.arom.pe Baza de Vin",0.75,6.9,95.9,0,"7483f26e"],["slab","Băutură slab alcoolică Royal Bomon Blackcurrant",0.75,7.0,85.9,1,"6e82588d"],["slab","Băutură slab alcoolică Royal Bomon Peach",0.75,7.0,85.9,1,"573540b"],["slab","Băutură slab alcoolică Royal Bomon Fragolino",0.75,7.0,85.9,1,"ff592773"],["slab","Băutură slab alcoolică Pegas Mojito",1.5,7.0,41.9,1,"b1386bd1"],["slab","Băutură slab alcoolică Pegas Muscat",1.5,7.0,41.9,1,"b79e3cb"],["slab","Băutură slab alcoolică Bacio di Bolle Pink Moscato, doză",0.25,7.0,30.9,1,"1c960190"],["slab","Băutură slab alcoolică Pegas Persic",1.5,7.0,41.9,1,"e00efe4d"],["slab","Băutură slab alcoolică Garage Hard Mandarin, sticlă",0.44,5.0,29.9,1,"b9c48e01"],["slab","Băutură slab alcoolică Bacio di Bolle Fragolino, doză",0.25,7.0,30.9,1,"a6501e68"],["slab","Băutură slab alcoolică Bacio di Bolle Black Currant, doză",0.25,7.0,30.9,1,"1de6978b"],["slab","Băutură slab alcoolică Mille Bolle Aperonne",0.75,7.0,89.9,1,"9a3b9e72"],["slab","Băutură slab alcoolică Mille Bolle Fragolino",0.75,7.0,89.9,1,"4c642694"],["slab","Băutură slab alcoolică Mille Bolle Moscato",0.75,7.0,89.9,1,"e0b438ac"],["slab","Bautura Premixata Jack Daniel's & Coca-cola Can",0.33,5.0,47.9,0,"1300d795"],["slab","Băutură slab alcoolică Bacio di Bolle Pink Moscato, dulce",0.75,7.0,83.9,1,"4e1131a0"],["slab","Băutură slab alcoolică Bacio di Bolle White Moscato, dulce",0.75,7.0,83.9,1,"9376795e"],["slab","Băutură slab alcoolică Bacio di Bolle Fragolino, dulce, roz",0.75,7.0,83.9,1,"d3fa0439"],["gin","Gin&tonic Gibson's London Dry",0.25,5.0,39.9,0,"1700f919"],["slab","Băutură slab alcoolică Bacio di Bolle Cocktail Spritz",0.75,7.0,95.9,1,"5ad7019f"],["slab","Băutură slab alcoolică Bacio di Bolle Cocktail Hugo",0.75,7.0,95.9,1,"5ded80af"],["slab","Băutură slab alcoolică Bacio di Bolle Black Currant, dulce",0.75,7.0,83.9,1,"c47588da"],["slab","Cidru Carlevana Premium, demidulce",0.75,6.0,109.0,1,"bd3f2892"],["slab","Cidru Carlevana de Mereni, demidulce",0.75,6.0,99.9,1,"9d7d511a"],["slab","Băutură slab alcoolică Garage Hard Lemon, PET",0.9,5.0,46.9,1,"875f078f"],["slab","Băutură slab alcoolică Garage Painberry Mint, sticlă",0.44,5.0,29.9,1,"729443af"],["slab","Cocktail Shake Sexx on the Beach",0.5,5.0,34.9,1,"a9d14d13"],["slab","Bautura Alcoolica Jinro Soju Green Grape",0.35,13.0,89.9,0,"e9b91a39"],["slab","Bautura Alcoolica Jinro Soju Peach",0.35,13.0,89.9,0,"cc7cb22f"],["slab","Băutură slab alcoolică Revo, doză",0.5,8.5,33.9,1,"d5a576a3"],["slab","Băutură alcoolică Jinro Soju Plum",0.35,13.0,89.9,0,"8d6e99b5"],["slab","Băutură slab alcoolică Revo Cherry, doză",0.5,8.5,33.9,1,"fdd41f6d"],["slab","Bautura Spirtoasa Jinro Chamisul Soju Fresh",0.35,16.5,89.9,0,"9674bc65"],["slab","Bautura Alcoolica Jinro Soju Grapefruit",0.35,13.0,89.9,0,"b36531cb"],["slab","Bautura Alcoolica Jinro Soju Strawberry",0.35,13.0,89.9,0,"ff9bcbed"],["slab","Băutură slab alcoolică Garage Hard Lemon, sticlă",0.44,5.0,29.9,1,"a45a4ad0"],["slab","Băutură slab alcoolică FESTIVAL PINK GRAPEFRUIT sticlă",0.33,5.0,24.9,1,"cc26c44"],["slab","Băutură slab alcoolică FESTIVAL CLUB MIX sticlă",0.33,5.0,24.9,1,"8204914c"],["spumant","Vin Spumant Petalo Amore Moscato Bottega",0.2,6.5,74.9,0,"af132afa"],["spumant","Prosecco Bottega Poeti DOC Brut",0.2,11.5,74.9,1,"d6db13a3"],["vin","Vin JP. Chenet Grenache Cinsault Rose Sec",0.25,12.0,45.9,0,"6b5505b"],["vin","Vin JP. Chenet Cabernet Syrah IGP Rosu Sec",0.25,13.0,45.9,0,"4bae7545"],["spumant","Prosecco Bottega Gold DOC, brut, alb",0.2,11.5,79.9,1,"d8b87a89"],["spumant","Vin Spumant JP. Chenet Original Alb Demisec",0.2,11.0,55.9,0,"6448aa52"],["spumant","Vin Spumant JP. Chenet Original Alb Brut",0.2,11.0,55.9,0,"e7c80fb4"],["spumant","Vin Spumant JP. Chenet Ice Edition Alb Demisec",0.2,11.0,55.9,0,"313ee7e"],["divin","Divin Kvint Surprise (10 Ani) Minion",0.05,40.0,69.9,1,"97421273"],["slab","Cocktail pe bază de vin Bottega Lemon Spritz, sticlă",0.2,5.0,69.9,1,"8264312b"],["divin","Divin Kvint (33 Ani) Minion",0.05,40.0,165.0,1,"e4319f8a"],["vodca","Vodcă Morosha Carpathian",0.2,40.0,39.9,1,"b6249eca"],["vodca","Vodcă Sobieski Premium",0.2,40.0,44.9,1,"89a8de5"],["vodca","Vodcă Sobieski Superior",0.35,40.0,74.9,1,"c6c8a91f"],["whisky","Whisky Tullamore D.e.w",0.05,40.0,41.5,1,"d17b59e"],["vodca","Vodcă Finlandia Classic",0.05,40.0,34.9,1,"a8fc6b8a"],["spumant","Vin Spumant JP. Chenet Ice Edition Roz Demisec",0.2,11.0,55.9,0,"ae1e0005"],["vin","Vin JP. Chenet Colombard Chardonnay Alb Sec",0.25,11.0,45.9,0,"20b5848"],["whisky","Whisky William Peel Blended Scotch",0.2,40.0,89.9,0,"775fac97"],["whisky","Whisky Jim Beam White Bourbon",0.2,40.0,109.0,0,"e4bb33ca"],["lichior","Lichior Disaronno Velvet",0.05,17.0,79.9,0,"cfcba0c0"],["vodca","Vodcă Zernoff Secărică",0.1,40.0,24.5,1,"6c2553a2"],["vodca","Vodcă Zernoff Gospodar, pahar",0.1,40.0,25.9,1,"bc533159"],["lichior","Lichior Disaronno Originale",0.05,28.0,64.9,0,"6e694e4e"],["divin","Divin Kvint 10 ani",0.25,40.0,139.0,0,"9bc4bc29"],["lichior","Lichior Tia Maria",0.05,20.0,85.9,0,"522c12d2"],["divin","Divin Kvint 5 ani",0.25,40.0,85.9,0,"9750b225"],["divin","Divin Kvint 6 ani",0.25,40.0,99.9,0,"aedd8ee0"],["divin","Divin Kvint 8 ani",0.25,40.0,109.0,0,"661f5572"],["vodca","Vodcă Exclusiv",0.2,40.0,64.9,1,"84c33218"],["vin","Vermut Martini Bianco",0.06,15.0,41.5,1,"2b4fd49"],["whisky","Whisky Monkey Shoulder",0.05,40.0,72.9,0,"efd50674"],["lichior","Lichior Vecchio Amaro del Capo Red Hot Edition",0.05,35.0,79.9,0,"9ef0617d"],["vodca","Vodcă Khortytsa Platinum",0.2,40.0,39.9,1,"bf8b076b"],["lichior","Lichior Vecchio Amaro del Capo",0.02,35.0,36.9,0,"939c4742"],["whisky","Whisky Jack Daniel's",0.05,40.0,43.9,1,"f7e63e34"],["lichior","Lichior Jägermeister",0.04,35.0,32.5,1,"4bbd3ebb"],["whisky","Whisky Jameson",0.05,40.0,46.9,1,"ac15966f"],["vodca","Vodcă Vozduh",0.2,40.0,43.5,1,"27fb2d4c"],["gin","Gin Drumshanbo Gunpowder Irish",0.05,43.0,55.0,0,"8064c612"],["gin","Gin Drumshanbo Gunpowder Irish With California Orange Citrus",0.05,43.0,55.0,0,"c5db7e65"],["gin","Gin Drumshanbo Gunpowder Irish With Sardinian Citrus",0.05,43.0,55.0,0,"d961bd77"],["lichior","Lichior Luxardo Sambuca dei Cesari",0.05,38.0,59.0,0,"981ddc3b"],["spumant","Vin Spumant Pinot Noir Brut Dargent Brut Roz",0.2,12.0,68.9,0,"1ac1a06a"],["spumant","Vin Spumant Chardonnay Brut Dargent Brut Alb",0.2,12.0,59.9,0,"160f4c58"],["vodca","Vodcă Khortytsa Platinum",0.1,40.0,24.9,1,"268256d1"],["lichior","Lichior Bottega Limoncino",0.03,30.0,44.9,0,"7f1d84ec"],["lichior","Lichior Bottega Limoncino",0.2,30.0,119.0,0,"96ed4675"],["whisky","Whisky the Whistler Irish Dark Symphony",0.05,43.14,55.9,0,"27c4e40"],["divin","DIVIN Set divinuri mature Kvint (Tiras 6 ani, Nistru 8 ani, Doina 9 ani, Surprise 10 ani) minion 4 x",0.05,40.0,269.0,1,"925b0453"],["divin","DIVIN Set divinuri foarte vechi Kvint (14, 20, 25, 33 ani) minion 4 x",0.05,40.0,499.0,1,"ca9ee9dd"],["divin","Divin Kvint Tiras (6 Ani) Minion",0.05,40.0,39.9,1,"8c89b22"],["divin","Divin Kvint Nistru (8 Ani) Minion",0.05,40.0,59.9,1,"c8c2bd1c"],["divin","Divin Kvint Doina (9 Ani) Minion",0.05,40.0,65.9,1,"552bffd7"]];
+  var CATALOG = RAW.map(function (r) {
+    return { id: "a" + r[6], cat: r[0], name: r[1], volL: r[2], abv: r[3], price: r[4], base: r[4], reg: r[4], old: null, est: !!r[5] };
+  });
+  var BASE_LEN = CATALOG.length;
+  var CATS = [
+    ["all", "Toate"], ["promo", "Promoții"], ["bere", "Bere"], ["vin", "Vin"], ["spumant", "Spumant"], ["vodca", "Vodcă"],
+    ["divin", "Divin & coniac"], ["whisky", "Whisky"], ["gin", "Gin"], ["rom", "Rom & tequila"],
+    ["lichior", "Lichior & aperitiv"], ["slab", "Slab alcoolice"], ["alte", "Rachiu & altele"], ["mine", "Ale mele"]
+  ];
+  var PAGE = 60;
+  var DRUNK = [[100, "Tot"], [75, "¾"], [50, "½"], [25, "¼"]];
+  var ETHANOL_DENSITY = 0.789; // g/ml
+  var STD_DRINK_G = 10;
+
+  /* ---------- State ---------- */
+  var state = { entries: [], custom: [] };
+  var ui = { tab: "lista", cat: "all", q: "", shown: PAGE, day: todayKey(), month: todayKey().slice(0, 7), calSel: todayKey(), metric: "alc" };
+  var needsMigrate = false;
+
+  /* ---------- Helpers ---------- */
+  function $(s) { return document.querySelector(s); }
+  function nf(n, d) { return Number(n).toLocaleString("ro-RO", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function nfAuto(n) { return Number(n).toLocaleString("ro-RO", { maximumFractionDigits: 3 }); }
+  function lei(n) { return nf(n, 2) + " lei"; }
+  function num(s) {
+    if (typeof s === "number") return s;
+    var v = parseFloat(String(s || "").replace(/[\s ]/g, "").replace(",", "."));
+    return isFinite(v) ? v : NaN;
+  }
+  function ok(n) { return typeof n === "number" && isFinite(n) ? n : 0; }
+  function uid(p) { return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function norm(s) { return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+  function sticle(n) {
+    if (n === 1) return "sticlă";
+    var r = n % 100;
+    return (n >= 20 && (r >= 20 || r === 0)) ? "de sticle" : "sticle";
+  }
+  function bottlesWord(n) { return n + " " + sticle(n); }
+  function pureMl(e) { return ok(e.qty) * ok(e.volL) * 1000 * (ok(e.drunk) / 100) * (ok(e.abv) / 100); }
+  function costOf(e) { return ok(e.qty) * ok(e.price); }
+  function canon(v) {
+    if (Array.isArray(v)) return "[" + v.map(canon).join(",") + "]";
+    if (v && typeof v === "object") return "{" + Object.keys(v).sort().map(function (k) { return JSON.stringify(k) + ":" + canon(v[k]); }).join(",") + "}";
+    return JSON.stringify(v);
+  }
+  function cleanItem(x) {
+    return {
+      id: String(x.id || uid("x")), name: String(x.name || "Băutură").slice(0, 140),
+      volL: ok(num(x.volL)), abv: ok(num(x.abv)), price: ok(num(x.price)), est: !!x.est,
+      srcId: x.srcId ? String(x.srcId) : "", qty: Math.max(1, Math.round(ok(num(x.qty)) || 1)),
+      drunk: [100, 75, 50, 25].indexOf(num(x.drunk)) >= 0 ? num(x.drunk) : 100,
+      date: /^\d{4}-\d{2}-\d{2}$/.test(String(x.date || "")) ? String(x.date) : (needsMigrate = true, todayKey())
+    };
+  }
+  function sanitize(d) {
+    d = d || {};
+    return {
+      entries: Array.isArray(d.entries) ? d.entries.map(cleanItem) : [],
+      custom: Array.isArray(d.custom) ? d.custom.map(function (c) {
+        var it = cleanItem(c); return { id: it.id, cat: "mine", name: it.name, volL: it.volL, abv: it.abv, price: it.price, est: it.est };
+      }) : []
+    };
+  }
+
+  /* ---------- Storage: account (db) with a local fallback ---------- */
+  var LS_KEY = "paharul-socotit-v1";
+  var ref = null, lastSaved = "", writing = false, again = false, dirty = false, saveTimer = 0;
+  function lsLoad() { try { var s = localStorage.getItem(LS_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function lsSave(obj) { try { localStorage.setItem(LS_KEY, JSON.stringify(obj)); } catch (e) {} }
+  function snap() { return { entries: state.entries, custom: state.custom }; }
+  function setStatus(s) {
+    var el = $("#status"); el.dataset.s = s;
+    el.textContent = s === "cloud" ? "Salvat în contul tău" : s === "local" ? "Salvat pe acest dispozitiv" : "Se încarcă…";
+    if (s !== "loading") splashReady();
+  }
+  function changed() {
+    lsSave(snap());
+    renderResults();
+    if (!ref) return;
+    dirty = true;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 500);
+  }
+  function flush() {
+    if (!ref) return;
+    if (writing) { again = true; return; }
+    var body = JSON.parse(JSON.stringify(snap()));
+    var key = canon(body);
+    dirty = false;
+    if (key === lastSaved) return;
+    writing = true;
+    ref.set({ entries: body.entries, custom: body.custom, v: 1 }).then(function () {
+      lastSaved = key; setStatus("cloud");
+    }, function (err) {
+      setStatus("local");
+      if (err && (err.code === "invalid_argument" || err.code === "revoked" || err.code === "not_granted")) ref = null;
+    }).then(function () {
+      writing = false;
+      if (again) { again = false; flush(); }
+    });
+  }
+  function connect() {
+    var c = window.claude;
+    if (!c || typeof c.use !== "function") { loadPricesFile(); setStatus("local"); return; }
+    Promise.all([c.use("db"), c.use("user")]).then(function (res) {
+      var db = res[0], user = res[1];
+      if (db) subscribePrices(db);
+      if (!db || !user) { setStatus("local"); return null; }
+      return user.id().then(function (id) {
+        if (!id) { setStatus("local"); return; }
+        ref = db.doc("data/users/" + id + "/state");
+        var first = true;
+        ref.onSnapshot(function (s) {
+          if (s.metadata && s.metadata.hasPendingWrites) return;
+          if (!s.exists) {
+            if (first) { first = false; setStatus("cloud"); if (state.entries.length || state.custom.length) flush(); }
+            return;
+          }
+          first = false;
+          var d = sanitize(s.data());
+          var key = canon(JSON.parse(JSON.stringify(d)));
+          if (key !== canon(JSON.parse(JSON.stringify(snap())))) {
+            if (writing || dirty) return; // a local edit is on its way and wins
+            state = d; lsSave(state); renderAll();
+            if (needsMigrate) { needsMigrate = false; changed(); }
+          }
+          lastSaved = key;
+          setStatus("cloud");
+        }, function () { setStatus("local"); ref = null; });
+      });
+    }).catch(function () { setStatus("local"); });
+  }
+
+  /* ---------- Tabs ---------- */
+  function showTab(t) {
+    ui.tab = t;
+    ["lista", "cal", "catalog", "manual"].forEach(function (k) {
+      $("#tab-" + k).setAttribute("aria-selected", k === t ? "true" : "false");
+      $("#panel-" + k).hidden = k !== t;
+    });
+    $("#barBtn").hidden = t === "lista" || dayEntries(ui.day).length === 0;
+    if (t === "catalog") renderCatalog();
+    if (t === "cal") { ui.calSel = ui.day; ui.month = ui.day.slice(0, 7); renderCal(); }
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+  $("#barBtn").addEventListener("click", function () { showTab("lista"); });
+
+  /* ---------- List ---------- */
+  function addEntry(item) {
+    var ex = item.srcId ? state.entries.filter(function (e) { return e.srcId === item.srcId && e.date === ui.day; })[0] : null;
+    if (ex) { ex.qty += 1; }
+    else {
+      state.entries.push({ id: uid("e"), srcId: item.srcId || "", name: item.name, volL: item.volL, abv: item.abv, price: item.price, est: !!item.est, qty: 1, drunk: 100, date: ui.day });
+    }
+    renderList(); changed();
+    toast("Adăugat la " + dayWord(ui.day) + ": " + item.name + (ex ? " (" + bottlesWord(ex.qty) + ")" : ""));
+  }
+  function entryEl(e) {
+    var li = document.createElement("li");
+    li.className = "entry"; li.dataset.id = e.id;
+    li.innerHTML =
+      '<div class="e-head"><p class="e-name"></p><button class="icon-btn" data-act="del" aria-label="Șterge din listă">✕</button></div>' +
+      '<div class="e-fields">' +
+        '<label class="field"><span>Volum</span><span class="in"><input inputmode="decimal" data-f="volL" id="v-' + e.id + '"><i>L</i></span></label>' +
+        '<label class="field"><span>Tărie</span><span class="in"><input inputmode="decimal" data-f="abv" id="a-' + e.id + '"><i>%</i></span></label>' +
+        '<label class="field"><span>Preț/sticlă</span><span class="in"><input inputmode="decimal" data-f="price" id="p-' + e.id + '"><i>lei</i></span></label>' +
+      '</div>' +
+      '<p class="est-note" hidden>Tăria e estimată după tipul băuturii. Verifică eticheta.</p>' +
+      '<p class="e-price" hidden><span></span><button type="button" data-act="useprice">Folosește prețul de azi</button></p>' +
+      '<div class="e-row">' +
+        '<div class="qty"><div class="stepper"><button data-act="minus" aria-label="O sticlă mai puțin">−</button><output></output><button data-act="plus" aria-label="O sticlă în plus">+</button></div><span class="unit"></span></div>' +
+        '<div class="drunk" role="group" aria-label="Cât ai băut din ele"><span>Băut</span>' +
+          DRUNK.map(function (d) { return '<button data-act="drunk" data-v="' + d[0] + '">' + d[1] + "</button>"; }).join("") +
+        "</div>" +
+      "</div>" +
+      '<p class="e-sum"></p>';
+    li.querySelector(".e-name").textContent = e.name;
+    li.querySelector('[data-f="volL"]').value = nfAuto(e.volL);
+    li.querySelector('[data-f="abv"]').value = nfAuto(e.abv);
+    li.querySelector('[data-f="price"]').value = nf(e.price, 2);
+    paintEntry(li, e);
+    return li;
+  }
+  function paintEntry(li, e) {
+    li.querySelector("output").textContent = e.qty;
+    li.querySelector(".unit").textContent = sticle(e.qty);
+    li.querySelector('[data-act="minus"]').disabled = e.qty <= 1;
+    li.querySelectorAll('[data-act="drunk"]').forEach(function (b) { b.setAttribute("aria-pressed", String(num(b.dataset.v) === e.drunk)); });
+    var abvIn = li.querySelector('[data-f="abv"]').parentNode;
+    abvIn.classList.toggle("est", e.est);
+    li.querySelector(".est-note").hidden = !e.est;
+    var cur = e.srcId ? CAT_BY_ID[e.srcId] : null, pr = li.querySelector(".e-price");
+    if (cur && Math.abs(cur.price - e.price) > 0.004) {
+      pr.hidden = false;
+      pr.querySelector("span").textContent = "La Alco Market acum: " + lei(cur.price) + (cur.old ? " (reducere −" + pct(cur) + "%)" : "");
+    } else pr.hidden = true;
+    var sum = li.querySelector(".e-sum");
+    sum.innerHTML = "";
+    var b1 = document.createElement("b"); b1.textContent = "≈ " + nf(pureMl(e), 0) + " ml";
+    var b2 = document.createElement("b"); b2.textContent = lei(costOf(e));
+    sum.appendChild(b1); sum.appendChild(document.createTextNode(" alcool pur · "));
+    sum.appendChild(b2);
+  }
+  function findEntry(id) { return state.entries.filter(function (e) { return e.id === id; })[0]; }
+  function renderList() {
+    var ul = $("#entries"); ul.textContent = "";
+    var list = dayEntries(ui.day);
+    list.forEach(function (e) { ul.appendChild(entryEl(e)); });
+    var n = list.length;
+    renderDayNav();
+    $("#empty").hidden = n > 0;
+    $("#listTools").hidden = n === 0;
+    resetClear();
+    updateMeta();
+  }
+  function updateMeta() {
+    var list = dayEntries(ui.day), n = list.length, bottles = 0;
+    list.forEach(function (e) { bottles += e.qty; });
+    var badge = $("#badge"); badge.hidden = n === 0; badge.textContent = n;
+    $("#listMeta").textContent = n ? (n === 1 ? "1 băutură" : n + " băuturi") + " · " + bottlesWord(bottles) : "";
+    $("#barBtn").hidden = ui.tab === "lista" || n === 0;
+  }
+
+  $("#entries").addEventListener("click", function (ev) {
+    var btn = ev.target.closest("button[data-act]"); if (!btn) return;
+    var li = btn.closest(".entry"), e = findEntry(li.dataset.id); if (!e) return;
+    var act = btn.dataset.act;
+    if (act === "del") {
+      state.entries = state.entries.filter(function (x) { return x !== e; });
+      renderList(); changed(); toast("Șters: " + e.name); return;
+    }
+    if (act === "plus") e.qty = Math.min(999, e.qty + 1);
+    if (act === "minus") e.qty = Math.max(1, e.qty - 1);
+    if (act === "drunk") e.drunk = num(btn.dataset.v);
+    if (act === "useprice") {
+      var cp = CAT_BY_ID[e.srcId];
+      if (cp) { e.price = cp.price; li.querySelector('[data-f="price"]').value = nf(e.price, 2); toast("Preț actualizat: " + lei(e.price)); }
+    }
+    paintEntry(li, e); updateMeta(); changed();
+  });
+  $("#entries").addEventListener("input", function (ev) {
+    var inp = ev.target; if (!inp.dataset || !inp.dataset.f) return;
+    var li = inp.closest(".entry"), e = findEntry(li.dataset.id); if (!e) return;
+    var f = inp.dataset.f, v = num(inp.value);
+    var valid = isFinite(v) && v >= 0 && (f !== "abv" || v <= 100) && (f !== "volL" || v > 0);
+    inp.parentNode.classList.toggle("bad", !valid);
+    if (!valid) return;
+    e[f] = v;
+    if (f === "abv") e.est = false;
+    paintEntry(li, e); changed();
+  });
+  $("#entries").addEventListener("change", function (ev) {
+    var inp = ev.target; if (!inp.dataset || !inp.dataset.f) return;
+    var li = inp.closest(".entry"), e = findEntry(li.dataset.id); if (!e) return;
+    var f = inp.dataset.f;
+    inp.value = f === "price" ? nf(e[f], 2) : nfAuto(e[f]);
+    inp.parentNode.classList.remove("bad");
+  });
+
+  /* Clear with in-page confirmation */
+  function resetClear() { $("#clearQ").hidden = true; $("#clearYes").hidden = true; $("#clearNo").hidden = true; $("#clearBtn").hidden = false; }
+  $("#clearBtn").addEventListener("click", function () { $("#clearQ").hidden = false; $("#clearYes").hidden = false; $("#clearNo").hidden = false; $("#clearBtn").hidden = true; });
+  $("#clearNo").addEventListener("click", resetClear);
+  $("#clearYes").addEventListener("click", function () {
+    var day = ui.day;
+    state.entries = state.entries.filter(function (e) { return e.date !== day; });
+    renderList(); changed(); toast("Ziua a fost golită");
+  });
+
+  /* ---------- Calculation ---------- */
+  function totals() {
+    var t = { pure: 0, spent: 0, vol: 0, bottles: 0 };
+    dayEntries(ui.day).forEach(function (e) {
+      t.pure += pureMl(e); t.spent += costOf(e);
+      t.vol += ok(e.qty) * ok(e.volL) * (ok(e.drunk) / 100); t.bottles += ok(e.qty);
+    });
+    return t;
+  }
+  /* Totals recalculate on every change: no button needed. */
+  function renderResults() {
+    var t = totals();
+    var grams = t.pure * ETHANOL_DENSITY;
+    var std = grams / STD_DRINK_G;
+    var n = dayEntries(ui.day).length;
+    $("#rPure").textContent = nf(t.pure, 0) + " ml";
+    $("#rPureSub").textContent = nf(grams, 0) + " g · ≈ " + nf(std, 1) + " porții standard";
+    $("#rSpent").textContent = lei(t.spent);
+    $("#rSpentSub").textContent = n ? "pentru " + bottlesWord(t.bottles) : "pe toate băuturile";
+    $("#rFoot").textContent = n
+      ? "Ai băut în total " + nf(t.vol, 2) + " L de băuturi, din " + (n === 1 ? "1 sort" : n + " sorturi") + ". Totalurile se actualizează singure."
+      : "Se calculează automat. Adaugă băuturi din Catalog și totalurile se actualizează pe loc.";
+    $("#barPure").textContent = nf(t.pure, 0) + " ml";
+    $("#barSpent").textContent = lei(t.spent);
+    $("#barDay").textContent = relDay(ui.day) || dayShort(ui.day);
+    if (ui.tab === "cal") renderCal();
+  }
+
+  /* ---------- Catalog ---------- */
+  function renderCats() {
+    var wrap = $("#cats"); wrap.textContent = "";
+    CATS.forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button"; b.dataset.cat = c[0]; b.textContent = c[1];
+      b.setAttribute("aria-pressed", String(ui.cat === c[0]));
+      wrap.appendChild(b);
+    });
+  }
+  $("#cats").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button[data-cat]"); if (!b) return;
+    ui.cat = b.dataset.cat; ui.shown = PAGE; renderCats(); renderCatalog();
+  });
+  var qTimer = 0;
+  $("#q").addEventListener("input", function () {
+    var v = this.value; clearTimeout(qTimer);
+    qTimer = setTimeout(function () { ui.q = v; ui.shown = PAGE; renderCatalog(); }, 120);
+  });
+  $("#moreBtn").addEventListener("click", function () { ui.shown += PAGE; renderCatalog(); });
+
+  CATALOG.forEach(function (p) { p.key = norm(p.name); });
+  function allProducts() {
+    return CATALOG.concat(state.custom.map(function (c) { return { id: c.id, cat: "mine", name: c.name, volL: c.volL, abv: c.abv, price: c.price, est: c.est, key: norm(c.name) }; }));
+  }
+  function renderCatalog() {
+    var ul = $("#products"); ul.textContent = "";
+    var q = norm(ui.q.trim());
+    var words = q ? q.split(/\s+/) : [];
+    var list = allProducts().filter(function (p) {
+      if (ui.cat === "promo") { if (!p.old) return false; }
+      else if (ui.cat !== "all" && p.cat !== ui.cat) return false;
+      return words.every(function (w) { return p.key.indexOf(w) >= 0; });
+    });
+    if (ui.cat === "promo") list.sort(function (a, b) { return pct(b) - pct(a); });
+    var found = $("#found");
+    found.textContent = (list.length === 1 ? "1 produs" : nf(list.length, 0) + " produse") + " · se adaugă la " + dayWord(ui.day);
+    $("#moreBtn").hidden = list.length <= ui.shown;
+    if (list.length > ui.shown) $("#moreBtn").textContent = "Arată mai multe (" + nf(list.length - ui.shown, 0) + " rămase)";
+    if (!list.length) {
+      var li = document.createElement("li"); li.className = "none";
+      li.textContent = ui.cat === "mine" && !state.custom.length
+        ? "Încă nu ai băuturi proprii. Le adaugi din fila Adaugă."
+        : ui.cat === "promo" ? "Nu sunt reduceri încărcate acum."
+        : "Nu am găsit nimic. Încearcă alt cuvânt sau adaug-o din fila Adaugă.";
+      ul.appendChild(li); return;
+    }
+    list.slice(0, ui.shown).forEach(function (p) {
+      var li = document.createElement("li"); li.className = "prod";
+      var info = document.createElement("div"); info.className = "info";
+      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
+      var mt = document.createElement("span"); mt.className = "mt";
+      mt.appendChild(document.createTextNode(nfAuto(p.volL) + " L · "));
+      if (p.est) { var t = document.createElement("span"); t.className = "tilde"; t.textContent = "~"; t.title = "tărie estimată"; mt.appendChild(t); }
+      mt.appendChild(document.createTextNode(nfAuto(p.abv) + "% · "));
+      var pe = document.createElement("b"); pe.className = p.old ? "pnow sale" : "pnow"; pe.textContent = lei(p.price); mt.appendChild(pe);
+      if (p.old) {
+        var os = document.createElement("s"); os.textContent = lei(p.old);
+        var bd = document.createElement("span"); bd.className = "badge-sale"; bd.textContent = "−" + pct(p) + "%";
+        mt.appendChild(document.createTextNode(" ")); mt.appendChild(os);
+        mt.appendChild(document.createTextNode(" ")); mt.appendChild(bd);
+      }
+      info.appendChild(nm); info.appendChild(mt);
+      if (p.cat === "mine") {
+        var rm = document.createElement("button"); rm.type = "button"; rm.className = "rm-mine"; rm.dataset.rm = p.id; rm.textContent = "Scoate din catalog";
+        info.appendChild(rm);
+      }
+      var inList = state.entries.filter(function (e) { return e.srcId === p.id && e.date === ui.day; })[0];
+      var add = document.createElement("button"); add.type = "button";
+      add.className = "add" + (inList ? " in-list" : ""); add.dataset.add = p.id;
+      add.textContent = inList ? "✓ " + inList.qty + " · +1" : "+ Adaugă";
+      add.setAttribute("aria-label", "Adaugă în listă: " + p.name + ", " + nfAuto(p.volL) + " litri");
+      li.appendChild(info); li.appendChild(add);
+      ul.appendChild(li);
+    });
+  }
+  $("#products").addEventListener("click", function (ev) {
+    var a = ev.target.closest("button[data-add]");
+    if (a) {
+      var p = allProducts().filter(function (x) { return x.id === a.dataset.add; })[0];
+      if (p) { addEntry({ srcId: p.id, name: p.name, volL: p.volL, abv: p.abv, price: p.price, est: p.est }); renderCatalog(); }
+      return;
+    }
+    var r = ev.target.closest("button[data-rm]");
+    if (r) {
+      state.custom = state.custom.filter(function (c) { return c.id !== r.dataset.rm; });
+      changed(); renderCatalog(); toast("Scos din „Ale mele”");
+    }
+  });
+
+  /* ---------- Paste parser for Alco Market text ---------- */
+  function guessAbv(name) {
+    var n = norm(name);
+    if (/radler/.test(n)) return 2.5;
+    if (/\b(bere|beer|lager|pils|ipa|stout|guinness|weizen|hefeweizen)\b/.test(n)) return 4.8;
+    if (/(spumant|prosecco|champagne|sampanie|cava|cremant|asti|frizzante|brut)/.test(n)) return 11.5;
+    if (/(vermut|vermouth|martini)/.test(n)) return 15;
+    if (/(fortificat|porto|\bport\b|xeres|sherry|madeira)/.test(n)) return 19;
+    if (/(cidru|cider|seltzer|cocktail|slab alcool)/.test(n)) return 5;
+    if (/(lichior|liqueur|jager|balsam|amaretto|baileys)/.test(n)) return 30;
+    if (/(aperitiv|aperol|campari)/.test(n)) return 15;
+    if (/(vodc|vodk|divin|coniac|cognac|brandy|whisk|\brom\b|\brum\b|\bgin\b|tequila|calvados|grappa|rachiu|tuica|palinca|horinca)/.test(n)) return 40;
+    if (/(\bvin\b|wine|merlot|cabernet|sauvignon|chardonnay|feteasca|pinot|riesling|saperavi|rara neagra|viorica|malbec|syrah|aligote|chablis)/.test(n)) return 12.5;
+    return null;
+  }
+  function parseProduct(text) {
+    var t = String(text || "").replace(/[\r\n\t]+/g, " ").replace(/\s{2,}/g, " ").trim();
+    var out = { name: "", volL: null, abv: null, price: null, abvGuessed: false };
+    if (!t) return out;
+    var pm = t.match(/(\d{1,3}(?:[  ]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)\s*(?:mdl|lei)\b/i);
+    if (pm) out.price = num(pm[1]);
+    var re = /(\d{1,2}(?:[.,]\d{1,2})?)\s*%/g, m;
+    while ((m = re.exec(t))) {
+      var before = norm(t.slice(Math.max(0, m.index - 12), m.index));
+      if (/reducere|discount|(^|\s)-\s*$/.test(before)) continue;
+      var v = num(m[1]); if (v > 0 && v <= 96) { out.abv = v; break; }
+    }
+    var vm = t.match(/(\d+(?:[.,]\d+)?)\s*(ml|l|litri|litru)(?![a-zăâîșț])/i);
+    if (vm) { var vv = num(vm[1]); out.volL = /^ml$/i.test(vm[2]) ? vv / 1000 : vv; }
+    var name = t
+      .replace(/(\d{1,3}(?:[  ]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)\s*(?:mdl|lei)\b/gi, " ")
+      .replace(/reducere\s*\d+\s*%/gi, " ")
+      .replace(/adaug[ăa] [îi]n co[șşs]/gi, " ")
+      .replace(/cump[ăa]r[ăa] cu 1 click/gi, " ")
+      .replace(/\b(HIT|New|Eveniment|[ÎI]n stoc)\b/g, " ")
+      .replace(/\s{2,}/g, " ").trim();
+    out.name = name.slice(0, 120);
+    if (out.abv == null) { var g = guessAbv(out.name); if (g != null) { out.abv = g; out.abvGuessed = true; } }
+    return out;
+  }
+  var mAbvGuessed = false;
+  function applyParse() {
+    var p = parseProduct($("#paste").value);
+    var msg = $("#parseMsg");
+    if (!$("#paste").value.trim()) { msg.className = "parse-msg"; msg.textContent = "Aștept textul copiat."; return; }
+    if (p.name) $("#mName").value = p.name;
+    if (p.volL != null) $("#mVol").value = nfAuto(p.volL);
+    if (p.abv != null) $("#mAbv").value = nfAuto(p.abv);
+    if (p.price != null) $("#mPrice").value = nf(p.price, 2);
+    mAbvGuessed = p.abvGuessed;
+    $("#mAbvWrap").classList.toggle("est", p.abvGuessed);
+    var found = [], miss = [];
+    (p.volL != null ? found : miss).push(p.volL != null ? "volum " + nfAuto(p.volL) + " L" : "volumul");
+    if (p.abv != null) found.push("tărie " + nfAuto(p.abv) + "%" + (p.abvGuessed ? " (estimată)" : "")); else miss.push("tăria");
+    (p.price != null ? found : miss).push(p.price != null ? "preț " + lei(p.price) : "prețul");
+    msg.className = "parse-msg " + (miss.length ? "warn" : (p.abvGuessed ? "warn" : "ok"));
+    msg.textContent = (found.length ? "Am găsit: " + found.join(", ") + "." : "") +
+      (miss.length ? " Completează " + miss.join(" și ") + " mai jos." : "") +
+      (p.abvGuessed ? " Tăria nu apare în text, verific-o pe etichetă." : "");
+  }
+  $("#paste").addEventListener("input", applyParse);
+  $("#mAbv").addEventListener("input", function () { mAbvGuessed = false; $("#mAbvWrap").classList.remove("est"); });
+  $("#mReset").addEventListener("click", function () {
+    ["#paste", "#mName", "#mVol", "#mAbv", "#mPrice"].forEach(function (s) { $(s).value = ""; });
+    mAbvGuessed = false; $("#mAbvWrap").classList.remove("est"); $("#mErr").hidden = true; applyParse();
+  });
+  $("#manualForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var name = $("#mName").value.trim() || "Băutură fără nume";
+    var vol = num($("#mVol").value), abv = num($("#mAbv").value), price = num($("#mPrice").value);
+    var errs = [];
+    if (!(vol > 0)) errs.push("volumul în litri (ex: 0,5)");
+    if (!(abv >= 0 && abv <= 100)) errs.push("tăria în % (ex: 40)");
+    if (!(price >= 0)) errs.push("prețul în lei (ex: 135)");
+    var err = $("#mErr");
+    if (errs.length) { err.hidden = false; err.textContent = "Lipsește " + errs.join(", ") + "."; return; }
+    err.hidden = true;
+    var item = { srcId: "", name: name, volL: vol, abv: abv, price: isFinite(price) ? price : 0, est: mAbvGuessed };
+    if ($("#mSave").checked) {
+      var c = { id: uid("u"), cat: "mine", name: name, volL: vol, abv: abv, price: item.price, est: mAbvGuessed };
+      state.custom.push(c); item.srcId = c.id;
+    }
+    addEntry(item);
+    ["#paste", "#mName", "#mVol", "#mAbv", "#mPrice"].forEach(function (s) { $(s).value = ""; });
+    mAbvGuessed = false; $("#mAbvWrap").classList.remove("est"); applyParse();
+  });
+
+  /* ---------- Live prices: daily promotions and weekly catalog from the shared database ---------- */
+  var STOPW = { st: 1, sticla: 1, doza: 1, cm: 1, c: 1, m: 1, pet: 1, cutie: 1, "in": 1, de: 1, si: 1, and: 1, the: 1, l: 1, ml: 1, alc: 1, blonda: 1 };
+  var PRE = "(^|[^\\d.,]|[^\\d][.,])";
+  var RE_ABV_G = new RegExp(PRE + "(\\d{1,2}(?:[.,]\\d{1,2})?)\\s*%", "g");
+  var RE_VOL_G = new RegExp(PRE + "(\\d+(?:[.,]\\d+)?)\\s*(ml|l)(?![a-zăâîșțA-ZĂÂÎȘȚ])", "gi");
+  var RE_VOL = new RegExp(PRE + "(\\d+(?:[.,]\\d+)?)\\s*(ml|l)(?![a-zăâîșțA-ZĂÂÎȘȚ])", "i");
+
+  function toks(name) {
+    var s = String(name)
+      .replace(/\bALC\.?\s*(?=\d)/gi, " ")
+      .replace(RE_ABV_G, "$1 ")
+      .replace(RE_VOL_G, "$1 ")
+      .replace(/C\/M/gi, " doza ").replace(/D\/SEC/gi, " demisec ").replace(/D\/D(ULCE)?/gi, " demidulce ");
+    var out = {};
+    norm(s).split(/[^a-z0-9]+/).forEach(function (t) { if (t && !STOPW[t]) out[t] = 1; });
+    return out;
+  }
+  function numsOf(t) { return Object.keys(t).filter(function (k) { return /^\d+$/.test(k); }).sort().join(","); }
+  function volOf(name) {
+    var m = RE_VOL.exec(name); if (!m) return null;
+    var v = num(m[2]); if (/^ml$/i.test(m[3])) v = v / 1000;
+    var pk = /(\d+)\s*-?\s*pack/i.exec(name); if (pk) v = v * parseInt(pk[1], 10);
+    return isFinite(v) && v > 0 ? Math.round(v * 1000) / 1000 : null;
+  }
+  function abvOf(name) {
+    var re = new RegExp(RE_ABV_G.source, "g"), m;
+    while ((m = re.exec(name))) { var v = num(m[2]); if (v >= 0 && v <= 96) return v; }
+    return null;
+  }
+  var LEADS = [
+    [/^(irish |blended |single malt )*(whisky|whiskey|bourbon)/, "whisky"],
+    [/^(set (1 sticla )?)?(vodca|vodka)/, "vodca"],
+    [/^(set (cadou )?)?(whisky|whiskey)/, "whisky"],
+    [/^(set )?gin\b/, "gin"],
+    [/^(rom|rum|tequila)\b/, "rom"],
+    [/^(set )?(lichior|liqueur|aperitiv|crema|balsam)\b/, "lichior"],
+    [/^(divin|coniac|cognac|brandy|kvint)\b/, "divin"],
+    [/^(vin spumant|vin spumos|spumant|prosecco|champagne|sampanie|cremant)\b/, "spumant"],
+    [/^(vin|vermut|sake)\b/, "vin"],
+    [/^bere\b/, "bere"]
+  ];
+  function guessCat(n, hint) {
+    if (/fara alcool|alcohol free|\bzero\b|0[,.]0 ?%/.test(n)) return null;
+    if (hint === "bere") return "bere";
+    for (var i = 0; i < LEADS.length; i++) if (LEADS[i][0].test(n)) return LEADS[i][1];
+    if (/\bsoju\b|slab alcool|cidru|cocktail|premixat|gin&tonic|fragolino|\brevo\b|\bgarage\b|festival|mi piace|royal bomon|\bpegas\b|mille bolle|bacio di bolle|aromatizata/.test(n)) return "slab";
+    if (/spumant|spumos|prosecco|champagne|sampanie|\bcava\b|cremant|petiant|perlant|\basti\b|frizzante/.test(n)) return "spumant";
+    if (/\bvin\b|vermut|\bsake\b|porto/.test(n) && !/divin/.test(n)) return "vin";
+    if (/vodc|vodk/.test(n)) return "vodca";
+    if (/whisk|bourbon|scotch/.test(n)) return "whisky";
+    if (/\bgin\b/.test(n)) return "gin";
+    if (/\brom\b|\brum\b|cachaca|tequila/.test(n)) return "rom";
+    if (/lichior|liqueur|\bcrema\b|aperitiv|aperol|campari|jager|balsam|sambuca|pastis|limoncello/.test(n)) return "lichior";
+    if (/rachiu|tuica|grappa|\barak\b|absint|absent/.test(n)) return "alte";
+    if (/divin|kvint|coniac|cognac|brandy|armagnac|calvados/.test(n)) return "divin";
+    if (/\bbere\b|\bbeer\b|lager|pils/.test(n)) return "bere";
+    return null;
+  }
+  function guessAbvCat(n, cat) {
+    function has(re) { return re.test(n); }
+    if (cat === "bere") {
+      if (has(/radler|beermix/)) return 2.5;
+      if (has(/baltika\s*(№|n|nr)?\s*9|extrakrep|desant|extra tare|speciala tare|strong/)) return 8;
+      if (has(/guinness/)) return 4.2;
+      if (has(/leffe/)) return 6.6;
+      return 4.8;
+    }
+    if (cat === "vin") {
+      if (has(/vermut/)) return 15;
+      if (has(/porto|\bport\b|fortificat/)) return 19.5;
+      if (has(/licoros|pastoral|patriarh|de desert/)) return 16;
+      if (has(/\bsake\b/)) return 15;
+      if (has(/frizzante|moscato/)) return 7;
+      return 12.5;
+    }
+    if (cat === "spumant") { if (has(/\basti\b|moscato|petalo/)) return 7; if (has(/champagne|sampanie/)) return 12; return 11.5; }
+    if (cat === "slab") { if (has(/soju/)) return 13; if (has(/cidru/)) return 6; return 7; }
+    if (cat === "lichior") {
+      if (has(/baileys|sheridan|carolans|irish cream|merrys/)) return 17;
+      if (has(/aperol/)) return 11;
+      if (has(/jager/)) return 35;
+      if (has(/amaretto|disaronno/)) return 28;
+      if (has(/sambuca/)) return 38;
+      return 25;
+    }
+    if (cat === "rom") return has(/tequila/) ? 38 : has(/spiced/) ? 35 : 40;
+    if (cat === "alte") return has(/absint|absent/) ? 70 : 40;
+    if (cat === "divin") return has(/shustov/) ? 30 : 40;
+    if (cat === "vodca") return has(/finlandia (cranberry|redberry|grapefruit|lime)/) ? 37.5 : 40;
+    return 40;
+  }
+  var KEEPU = { XO: 1, VSOP: 1, VS: 1, IGP: 1, DOC: 1, DOCG: 1, AOP: 1, IPA: 1, BIB: 1, PET: 1, II: 1, III: 1, LE: 1, YO: 1 };
+  var SMALLW = { de: 1, si: 1, "și": 1, cu: 1, and: 1, di: 1, del: 1, dei: 1, delle: 1, du: 1, la: 1, le: 1, et: 1, des: 1, "in": 1, "în": 1, of: 1, the: 1, ani: 1 };
+  function cleanName(raw) {
+    var n = String(raw).replace(/\bALC\.?\s*(?=\d)/gi, "")
+      .replace(new RegExp(RE_ABV_G.source, "g"), "$1")
+      .replace(new RegExp(RE_VOL_G.source, "gi"), "$1")
+      .replace(/\s{2,}/g, " ").replace(/^[\s,.\-\/+]+|[\s,.\-\/+]+$/g, "");
+    var letters = n.replace(/[^A-Za-zĂÂÎȘȚăâîșț]/g, "");
+    var up = letters.replace(/[^A-ZĂÂÎȘȚ]/g, "").length;
+    if (letters.length && up / letters.length >= 0.6) {
+      n = n.split(" ").map(function (w, i) {
+        var core = w.replace(/[^A-Za-z0-9ĂÂÎȘȚăâîșț]/g, "").toUpperCase();
+        if (KEEPU[core] || /^[\d.,\/%№]+[A-Z]*$/.test(w)) return w;
+        var lw = w.toLowerCase();
+        if (i > 0 && SMALLW[lw]) return lw;
+        return lw.replace(/^([^a-zăâîșț0-9]*)([a-zăâîșț])/, function (m0, a, b) { return a + b.toUpperCase(); });
+      }).join(" ");
+    }
+    return n.replace(/\b(St|ST)\.?(?=\s|$)/g, "sticlă").replace(/(^|\s)(C\/M|C\/m|c\/m|CM|Cm)(?=\s|$)/g, "$1doză")
+      .replace(/\bD\/(SEC|Sec|sec)\b/g, "demisec").replace(/\bD\/(D|DULCE|Dulce)\b/g, "demidulce")
+      .replace(/\s{2,}/g, " ").trim();
+  }
+
+  var priceDocs = { catalog: null, current: null };
+  var CAT_BY_ID = {};
+  function pct(p) { return p.old ? Math.round((1 - p.price / p.old) * 100) : 0; }
+  function hashStr(s) { var h = 5381; for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+  function rowsOf(doc) { return doc && Array.isArray(doc.items) ? doc.items : []; }
+
+  /* Rebuild current prices: embedded catalog, then the weekly catalog scan, then today's promotions. */
+  function applyPrices() {
+    CATALOG.length = BASE_LEN;
+    var buckets = {};
+    CATALOG.forEach(function (p) {
+      p.reg = p.base; p.price = p.base; p.old = null;
+      if (!p.tok) { p.tok = toks(p.name); p.num = numsOf(p.tok); p.ntok = Object.keys(p.tok).length; }
+      var k = p.volL.toFixed(3); (buckets[k] || (buckets[k] = [])).push(p);
+    });
+    function match(name, vol) {
+      var t = toks(name), n = numsOf(t), keys = Object.keys(t), best = null, score = 0;
+      (buckets[vol.toFixed(3)] || []).forEach(function (p) {
+        if (p.num !== n) return;
+        var inter = 0;
+        for (var i = 0; i < keys.length; i++) if (p.tok[keys[i]]) inter++;
+        if (!inter) return;
+        var j = inter / (keys.length + p.ntok - inter);
+        if (j > score) { score = j; best = p; }
+      });
+      return score >= 0.8 ? best : null;
+    }
+    function merge(row, promo) {
+      if (!Array.isArray(row) || typeof row[0] !== "string") return;
+      var name = row[0], price = num(row[1]), old = num(row[2]), hint = typeof row[3] === "string" ? row[3] : "";
+      if (!(price > 0)) return;
+      var vol = volOf(name); if (!vol) return;
+      var p = match(name, vol);
+      var reg = old > price ? old : price;
+      if (!p) {
+        var n = norm(name), cat = guessCat(n, hint); if (!cat) return;
+        var a = abvOf(name), est = a == null; if (est) a = guessAbvCat(n, cat);
+        if (a == null || a <= 0) return;
+        var nm = cleanName(name);
+        p = { id: "n" + hashStr(norm(nm) + "|" + vol), cat: cat, name: nm, volL: vol, abv: a, est: est, base: reg, reg: reg, price: reg, old: null };
+        p.tok = toks(nm); p.num = numsOf(p.tok); p.ntok = Object.keys(p.tok).length; p.key = norm(nm);
+        CATALOG.push(p);
+        var k = vol.toFixed(3); (buckets[k] || (buckets[k] = [])).push(p);
+      }
+      if (promo) { p.price = price; p.old = old > price ? old : null; if (p.old) p.reg = p.old; }
+      else { p.reg = reg; p.price = reg; p.old = null; }
+    }
+    rowsOf(priceDocs.catalog).forEach(function (r) { merge(r, false); });
+    rowsOf(priceDocs.current).forEach(function (r) { merge(r, true); });
+    CAT_BY_ID = {};
+    CATALOG.forEach(function (p) { CAT_BY_ID[p.id] = p; });
+    renderPriceInfo();
+  }
+  function fmtWhen(iso) {
+    var d = new Date(iso); if (isNaN(d.getTime())) return "";
+    var t = d.toLocaleTimeString("ro-RO", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === new Date().toDateString()) return "azi la " + t;
+    return d.toLocaleDateString("ro-RO", { day: "numeric", month: "short" }) + ", " + t;
+  }
+  function renderPriceInfo() {
+    var nPromo = 0;
+    CATALOG.forEach(function (p) { if (p.old) nPromo++; });
+    $("#catCount").textContent = nf(CATALOG.length, 0) + " de produse";
+    var c = priceDocs.current, el = $("#priceInfo");
+    if (c && c.checkedAt) {
+      var when = fmtWhen(c.checkedAt);
+      el.textContent = "Reduceri verificate " + when + " · " + nPromo + " băuturi la reducere" + (c.pagesFailed ? " (parțial)" : "");
+    } else {
+      el.textContent = "Prețuri din 15 oct. 2026";
+    }
+  }
+  function pricesChanged() {
+    applyPrices();
+    if (ui.tab === "catalog") renderCatalog();
+    document.querySelectorAll("#entries .entry").forEach(function (li) {
+      var e = findEntry(li.dataset.id); if (e) paintEntry(li, e);
+    });
+  }
+  function loadPricesFile() {
+    if (!window.fetch) return;
+    spStep("Verific reducerile de azi…", 0.75);
+    fetch("prices.json", { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      if (!d || typeof d !== "object") return;
+      priceDocs.catalog = d.catalog && typeof d.catalog === "object" ? d.catalog : null;
+      priceDocs.current = d.current && typeof d.current === "object" ? d.current : null;
+      pricesChanged();
+    }).catch(function () {});
+  }
+  function subscribePrices(db) {
+    ["current", "catalog"].forEach(function (id) {
+      try {
+        db.doc("prices/" + id).onSnapshot(function (s) {
+          priceDocs[id] = s.exists ? s.data() : null;
+          applyPrices();
+          if (id === "current") spStep("Verific reducerile de azi…", 0.75);
+          if (ui.tab === "catalog") renderCatalog();
+          document.querySelectorAll("#entries .entry").forEach(function (li) {
+            var e = findEntry(li.dataset.id); if (e) paintEntry(li, e);
+          });
+        }, function () {});
+      } catch (e) {}
+    });
+  }
+
+  /* ---------- Days & calendar ---------- */
+  var MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
+  var WDAYS = ["duminică", "luni", "marți", "miercuri", "joi", "vineri", "sâmbătă"];
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+  function dkey(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  function todayKey() { return dkey(new Date()); }
+  function fromKey(k) { var p = String(k).split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function addDays(k, n) { var d = fromKey(k); d.setDate(d.getDate() + n); return dkey(d); }
+  function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+  function dayLong(k) { var d = fromKey(k); return WDAYS[d.getDay()] + ", " + d.getDate() + " " + MONTHS[d.getMonth()]; }
+  function dayShort(k) { var d = fromKey(k); return d.getDate() + " " + MONTHS[d.getMonth()].slice(0, 3) + "."; }
+  function relDay(k) { var t = todayKey(); if (k === t) return "Azi"; if (k === addDays(t, -1)) return "Ieri"; return ""; }
+  function dayWord(k) { var r = relDay(k); return r ? r.toLowerCase() : dayShort(k); }
+  function dayEntries(k) { return state.entries.filter(function (e) { return e.date === k; }); }
+  function drunkLabel(v) { for (var i = 0; i < DRUNK.length; i++) if (DRUNK[i][0] === v) return DRUNK[i][1]; return v + "%"; }
+
+  function setDay(k) {
+    var t = todayKey();
+    ui.day = k > t ? t : k;
+    renderList(); renderResults();
+    if (ui.tab === "catalog") renderCatalog();
+  }
+  function renderDayNav() {
+    var t = todayKey(), rel = relDay(ui.day);
+    $("#dayRel").textContent = rel || cap(WDAYS[fromKey(ui.day).getDay()]);
+    $("#dayLabel").textContent = rel ? dayLong(ui.day) : fromKey(ui.day).getDate() + " " + MONTHS[fromKey(ui.day).getMonth()] + " " + fromKey(ui.day).getFullYear();
+    $("#dayNext").disabled = ui.day >= t;
+    $("#dayToday").hidden = ui.day === t;
+    $("#emptyText").textContent = (rel === "Azi" ? "Nimic notat azi." : "Nimic notat în ziua asta.") + " Alege băuturi din catalogul Alco Market sau adaugă una lipind denumirea și prețul de pe site.";
+  }
+  $("#dayPrev").addEventListener("click", function () { setDay(addDays(ui.day, -1)); });
+  $("#dayNext").addEventListener("click", function () { setDay(addDays(ui.day, 1)); });
+  $("#dayToday").addEventListener("click", function () { setDay(todayKey()); });
+
+  function monthAgg(ym) {
+    var agg = {};
+    state.entries.forEach(function (e) {
+      if (e.date.slice(0, 7) !== ym) return;
+      var a = agg[e.date] || (agg[e.date] = { pure: 0, spent: 0, n: 0 });
+      a.pure += pureMl(e); a.spent += costOf(e); a.n++;
+    });
+    return agg;
+  }
+  function renderCal() {
+    var ym = ui.month, y = +ym.slice(0, 4), m = +ym.slice(5, 7) - 1, t = todayKey();
+    $("#calTitle").textContent = cap(MONTHS[m]) + " " + y;
+    $("#calNext").disabled = ym >= t.slice(0, 7);
+    var agg = monthAgg(ym), keys = Object.keys(agg), tp = 0, ts = 0, max = 0;
+    keys.forEach(function (k) {
+      tp += agg[k].pure; ts += agg[k].spent;
+      var v = ui.metric === "lei" ? agg[k].spent : agg[k].pure; if (v > max) max = v;
+    });
+    $("#calPure").textContent = nf(tp, 0) + " ml";
+    $("#calPureSub").textContent = "≈ " + nf(tp * ETHANOL_DENSITY / STD_DRINK_G, 1) + " porții standard";
+    $("#calSpent").textContent = lei(ts);
+    var nd = keys.length;
+    $("#calDays").textContent = nd === 0 ? "nicio zi notată" : nd === 1 ? "1 zi cu băuturi notate" : nd + (nd >= 20 ? " de zile" : " zile") + " cu băuturi notate";
+    document.querySelectorAll(".cal-toggle button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.m === ui.metric)); });
+
+    var grid = $("#calGrid"); grid.textContent = "";
+    grid.classList.toggle("lei", ui.metric === "lei");
+    ["L", "Ma", "Mi", "J", "V", "S", "D"].forEach(function (w) {
+      var h = document.createElement("div"); h.className = "cal-wd"; h.textContent = w; grid.appendChild(h);
+    });
+    var first = new Date(y, m, 1), off = (first.getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+    for (var i = 0; i < off; i++) { var b0 = document.createElement("div"); b0.className = "cd blank"; grid.appendChild(b0); }
+    for (var d = 1; d <= days; d++) {
+      var k = ym + "-" + pad2(d), a = agg[k];
+      var b = document.createElement("button"); b.type = "button"; b.className = "cd"; b.dataset.d = k;
+      if (k > t) b.disabled = true;
+      if (k === t) b.classList.add("today");
+      if (k === ui.calSel) b.classList.add("sel");
+      var n = document.createElement("span"); n.className = "cd-n"; n.textContent = d; b.appendChild(n);
+      var label = d + " " + MONTHS[m];
+      if (a) {
+        b.classList.add("has");
+        var v = ui.metric === "lei" ? a.spent : a.pure;
+        var vv = document.createElement("span"); vv.className = "cd-v"; vv.textContent = nf(v, 0); b.appendChild(vv);
+        var bar = document.createElement("i"); bar.className = "cd-bar";
+        bar.style.width = "calc((100% - 8px) * " + (max ? Math.max(0.12, v / max) : 0).toFixed(3) + ")";
+        b.appendChild(bar);
+        label += ": " + nf(a.pure, 0) + " ml alcool pur, " + lei(a.spent);
+      } else {
+        label += ": nimic notat";
+      }
+      b.setAttribute("aria-label", label);
+      if (k === ui.calSel) b.setAttribute("aria-current", "date");
+      grid.appendChild(b);
+    }
+    renderCalDay();
+  }
+  function renderCalDay() {
+    var k = ui.calSel, box = $("#calDay"), list = dayEntries(k);
+    box.textContent = "";
+    var h = document.createElement("h3"); var rel = relDay(k);
+    h.textContent = (rel ? rel + " · " : "") + cap(dayLong(k));
+    box.appendChild(h);
+    if (!list.length) {
+      var p = document.createElement("p"); p.className = "muted";
+      p.textContent = "Nimic notat în ziua asta.";
+      box.appendChild(p);
+      if (k <= todayKey()) {
+        var add = document.createElement("button"); add.type = "button"; add.className = "btn primary"; add.dataset.calgo = "catalog";
+        add.textContent = "Adaugă băuturi în ziua asta"; box.appendChild(add);
+      }
+      return;
+    }
+    var pure = 0, spent = 0;
+    list.forEach(function (e) { pure += pureMl(e); spent += costOf(e); });
+    var tot = document.createElement("p"); tot.className = "cdl-tot";
+    var b1 = document.createElement("b"); b1.textContent = nf(pure, 0) + " ml";
+    var b2 = document.createElement("b"); b2.textContent = lei(spent);
+    tot.appendChild(b1); tot.appendChild(document.createTextNode(" alcool pur (≈ " + nf(pure * ETHANOL_DENSITY / STD_DRINK_G, 1) + " porții) · "));
+    tot.appendChild(b2); tot.appendChild(document.createTextNode(" cheltuit"));
+    box.appendChild(tot);
+    var ul = document.createElement("ul");
+    list.forEach(function (e) {
+      var li = document.createElement("li");
+      var l = document.createElement("div"); l.style.minWidth = "0";
+      var nm = document.createElement("div"); nm.className = "cdl-name"; nm.textContent = e.name;
+      var mt = document.createElement("div"); mt.className = "cdl-meta";
+      mt.textContent = e.qty + " × " + nfAuto(e.volL) + " L · " + nfAuto(e.abv) + "%" + (e.drunk !== 100 ? " · băut " + drunkLabel(e.drunk) : "");
+      l.appendChild(nm); l.appendChild(mt);
+      var r = document.createElement("div"); r.className = "cdl-r";
+      var rb = document.createElement("b"); rb.textContent = nf(pureMl(e), 0) + " ml";
+      r.appendChild(rb); r.appendChild(document.createTextNode(lei(costOf(e))));
+      li.appendChild(l); li.appendChild(r); ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    var open = document.createElement("button"); open.type = "button"; open.className = "btn"; open.dataset.calgo = "lista";
+    open.textContent = "Deschide ziua ca s-o modifici"; box.appendChild(open);
+  }
+  $("#calGrid").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button.cd"); if (!b || b.disabled) return;
+    ui.calSel = b.dataset.d; renderCal();
+  });
+  $("#calDay").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button[data-calgo]"); if (!b) return;
+    setDay(ui.calSel); showTab(b.dataset.calgo);
+  });
+  $("#calPrev").addEventListener("click", function () {
+    var y = +ui.month.slice(0, 4), m = +ui.month.slice(5, 7) - 1;
+    var d = new Date(y, m - 1, 1); ui.month = d.getFullYear() + "-" + pad2(d.getMonth() + 1); renderCal();
+  });
+  $("#calNext").addEventListener("click", function () {
+    var y = +ui.month.slice(0, 4), m = +ui.month.slice(5, 7) - 1;
+    var d = new Date(y, m + 1, 1), nk = d.getFullYear() + "-" + pad2(d.getMonth() + 1);
+    if (nk <= todayKey().slice(0, 7)) { ui.month = nk; renderCal(); }
+  });
+  document.querySelectorAll(".cal-toggle button").forEach(function (b) {
+    b.addEventListener("click", function () { ui.metric = b.dataset.m; renderCal(); });
+  });
+
+  /* ---------- Splash ---------- */
+  var SP_REDUCE = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var spGone = false, spReady = false, spProg = 0.08;
+  function spProgress(v) {
+    if (v <= spProg) return; spProg = v;
+    var bar = $("#spBar"); if (bar) bar.style.transform = "scaleX(" + v.toFixed(3) + ")";
+  }
+  function spStep(text, prog) {
+    if (prog) spProgress(prog);
+    var el = $("#spStep"); if (!el || spGone || spReady) return;
+    el.classList.add("swap");
+    setTimeout(function () { el.textContent = text; el.classList.remove("swap"); }, 300);
+  }
+  function hideSplash() {
+    if (spGone) return; spGone = true;
+    var el = $("#splash"); if (!el) return;
+    el.classList.add("done");
+    setTimeout(function () { el.hidden = true; }, 850);
+  }
+  function splashReady() {
+    if (spReady) return;
+    spReady = true;
+    var elapsed = window.performance && performance.now ? performance.now() : 0;
+    var wait = Math.max(0, (SP_REDUCE ? 400 : 2300) - elapsed);
+    setTimeout(function () { spProgress(1); setTimeout(hideSplash, SP_REDUCE ? 100 : 650); }, wait);
+  }
+  setTimeout(splashReady, 3300);
+
+  /* ---------- Toast ---------- */
+  var toastT = 0;
+  function toast(text) {
+    var t = $("#toast"); t.textContent = text; t.hidden = false;
+    t.style.animation = "none"; void t.offsetWidth; t.style.animation = "";
+    clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 2200);
+  }
+
+  /* ---------- Wiring ---------- */
+  ["lista", "cal", "catalog", "manual"].forEach(function (k) { $("#tab-" + k).addEventListener("click", function () { showTab(k); }); });
+  document.querySelectorAll("[data-go]").forEach(function (b) { b.addEventListener("click", function () { showTab(b.dataset.go); }); });
+
+  function renderAll() { renderList(); renderCats(); renderCatalog(); renderResults(); if (ui.tab === "cal") renderCal(); }
+
+  var local = lsLoad();
+  if (local) { state = sanitize(local); if (needsMigrate) lsSave(state); }
+  applyPrices();
+  setTimeout(function () { spProgress(0.3); }, 120);
+  setTimeout(function () { spStep("Pregătesc " + nf(CATALOG.length, 0) + " de băuturi…", 0.5); }, 700);
+  renderAll();
+  showTab("lista");
+  setStatus("loading");
+  connect();
+  if ("serviceWorker" in navigator && window.isSecureContext) {
+    try { navigator.serviceWorker.register("sw.js").catch(function () {}); } catch (e) {}
+  }
+})();
+</script>
+</body>
+</html>

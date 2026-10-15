@@ -1,0 +1,33 @@
+{
+  "name": "Alcoolic Adevărat",
+  "short_name": "Alcoolic",
+  "description": "Notează ce bei de la Alco Market: alcool pur și bani cheltuiți, zi de zi.",
+  "lang": "ro",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EEF2EC",
+  "theme_color": "#EEF2EC",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
