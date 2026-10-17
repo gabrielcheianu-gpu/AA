@@ -155,6 +155,11 @@ p { margin: 0; }
 .cats::-webkit-scrollbar { display: none; }
 .cats button { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 13px; font-size: 0.88rem; font-weight: 600; color: var(--muted); }
 .cats button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.sorts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 0 2px; }
+.sorts > span { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-right: 2px; }
+.sorts button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 5px 11px; font-size: 0.84rem; font-weight: 600; color: var(--muted); }
+.sorts button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.prod .mt .na { color: var(--accent); font-weight: 600; }
 .products { list-style: none; margin: 8px 0 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
 .prod { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-top: 1px solid var(--line); }
 .prod:first-child { border-top: 0; }
@@ -398,10 +403,16 @@ textarea:focus { outline: none; border-color: var(--accent); }
       <input id="q" type="search" placeholder="Caută: Kvint, Chișinău, prosecco…" autocomplete="off">
     </label>
     <div class="cats" id="cats" role="group" aria-label="Categorii"></div>
+    <div class="sorts" id="sorts" role="group" aria-label="Sortează după preț">
+      <span>Sortează:</span>
+      <button type="button" data-sort="rec" aria-pressed="true">Implicit</button>
+      <button type="button" data-sort="asc" aria-pressed="false">Preț crescător ↑</button>
+      <button type="button" data-sort="desc" aria-pressed="false">Preț descrescător ↓</button>
+    </div>
     <p class="found" id="found"></p>
     <ul class="products" id="products"></ul>
     <button class="btn more" id="moreBtn" type="button" hidden>Arată mai multe</button>
-    <p class="note">Prețurile sunt cele afișate pe <a href="https://alcomarket.md/ro" target="_blank" rel="noopener">alcomarket.md</a> pe 15 oct. 2026 și se pot schimba. Tăria marcată cu <b style="color:var(--amber)">~</b> nu apare pe site și e estimată după tipul băuturii; o poți corecta în listă. Dacă nu găsești o băutură, o adaugi din fila Adaugă.</p>
+    <p class="note">Prețurile sunt cele afișate pe <a href="https://alcomarket.md/ro" target="_blank" rel="noopener">alcomarket.md</a> pe 15 oct. 2026 și se pot schimba. Tăria marcată cu <b style="color:var(--amber)">~</b> nu apare pe site și e estimată după tipul băuturii; o poți corecta în listă. Băuturile fără alcool (apă, sucuri, răcoritoare, energizante, bere fără alcool) sunt la „Fără alcool”. Dacă nu găsești o băutură, o adaugi din fila Adaugă.</p>
   </section>
 
   <!-- MANUAL -->
@@ -452,7 +463,7 @@ textarea:focus { outline: none; border-color: var(--accent); }
   var CATS = [
     ["all", "Toate"], ["promo", "Promoții"], ["bere", "Bere"], ["vin", "Vin"], ["spumant", "Spumant"], ["vodca", "Vodcă"],
     ["divin", "Divin & coniac"], ["whisky", "Whisky"], ["gin", "Gin"], ["rom", "Rom & tequila"],
-    ["lichior", "Lichior & aperitiv"], ["slab", "Slab alcoolice"], ["alte", "Rachiu & altele"], ["mine", "Ale mele"]
+    ["lichior", "Lichior & aperitiv"], ["slab", "Slab alcoolice"], ["alte", "Rachiu & altele"], ["nealc", "Fără alcool"], ["mine", "Ale mele"]
   ];
   var PAGE = 60;
   var DRUNK = [[100, "Tot"], [75, "¾"], [50, "½"], [25, "¼"]];
@@ -461,7 +472,7 @@ textarea:focus { outline: none; border-color: var(--accent); }
 
   /* ---------- State ---------- */
   var state = { entries: [], custom: [] };
-  var ui = { tab: "lista", cat: "all", q: "", shown: PAGE, day: todayKey(), month: todayKey().slice(0, 7), calSel: todayKey(), metric: "alc" };
+  var ui = { tab: "lista", cat: "all", sort: "rec", q: "", shown: PAGE, day: todayKey(), month: todayKey().slice(0, 7), calSel: todayKey(), metric: "alc" };
   var needsMigrate = false;
 
   /* ---------- Helpers ---------- */
@@ -761,6 +772,12 @@ textarea:focus { outline: none; border-color: var(--accent); }
     var v = this.value; clearTimeout(qTimer);
     qTimer = setTimeout(function () { ui.q = v; ui.shown = PAGE; renderCatalog(); }, 120);
   });
+  $("#sorts").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button[data-sort]"); if (!b) return;
+    ui.sort = b.dataset.sort; ui.shown = PAGE;
+    document.querySelectorAll("#sorts button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+    renderCatalog();
+  });
   $("#moreBtn").addEventListener("click", function () { ui.shown += PAGE; renderCatalog(); });
 
   CATALOG.forEach(function (p) { p.key = norm(p.name); });
@@ -776,7 +793,9 @@ textarea:focus { outline: none; border-color: var(--accent); }
       else if (ui.cat !== "all" && p.cat !== ui.cat) return false;
       return words.every(function (w) { return p.key.indexOf(w) >= 0; });
     });
-    if (ui.cat === "promo") list.sort(function (a, b) { return pct(b) - pct(a); });
+    if (ui.sort === "asc") list.sort(function (a, b) { return ok(a.price) - ok(b.price) || a.name.localeCompare(b.name, "ro"); });
+    else if (ui.sort === "desc") list.sort(function (a, b) { return ok(b.price) - ok(a.price) || a.name.localeCompare(b.name, "ro"); });
+    else if (ui.cat === "promo") list.sort(function (a, b) { return pct(b) - pct(a); });
     var found = $("#found");
     found.textContent = (list.length === 1 ? "1 produs" : nf(list.length, 0) + " produse") + " · se adaugă la " + dayWord(ui.day);
     $("#moreBtn").hidden = list.length <= ui.shown;
@@ -795,8 +814,13 @@ textarea:focus { outline: none; border-color: var(--accent); }
       var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
       var mt = document.createElement("span"); mt.className = "mt";
       mt.appendChild(document.createTextNode(nfAuto(p.volL) + " L · "));
-      if (p.est) { var t = document.createElement("span"); t.className = "tilde"; t.textContent = "~"; t.title = "tărie estimată"; mt.appendChild(t); }
-      mt.appendChild(document.createTextNode(nfAuto(p.abv) + "% · "));
+      if (p.cat === "nealc" || (!p.abv && p.cat !== "mine")) {
+        var na = document.createElement("span"); na.className = "na"; na.textContent = "fără alcool"; mt.appendChild(na);
+        mt.appendChild(document.createTextNode(" · "));
+      } else {
+        if (p.est) { var t = document.createElement("span"); t.className = "tilde"; t.textContent = "~"; t.title = "tărie estimată"; mt.appendChild(t); }
+        mt.appendChild(document.createTextNode(nfAuto(p.abv) + "% · "));
+      }
       var pe = document.createElement("b"); pe.className = p.old ? "pnow sale" : "pnow"; pe.textContent = lei(p.price); mt.appendChild(pe);
       if (p.old) {
         var os = document.createElement("s"); os.textContent = lei(p.old);
@@ -961,7 +985,10 @@ textarea:focus { outline: none; border-color: var(--accent); }
     [/^bere\b/, "bere"]
   ];
   function guessCat(n, hint) {
-    if (/fara alcool|alcohol free|\bzero\b|0[,.]0 ?%/.test(n)) return null;
+    if (/fara alcool|alcohol free|non.?alcoholic|\bzero\b|0[,.]0 ?%/.test(n)) return "nealc";
+    if (!/alcool|mojito|cocktail|spritz|hugo|sangria/.test(n) && (
+        /^(apa|suc|nectar|limonada|ceai|kvas|cvas|compot|sirop|bautura)\b/.test(n) ||
+        /fever.?tree|\btonic|energizant|red bull|pit bull|non stop|coca.?cola|pepsi|fanta|sprite|mirinda|limonetta|merlin.?s pop|\bcola\b|ginger (ale|beer)/.test(n))) return "nealc";
     if (hint === "bere") return "bere";
     for (var i = 0; i < LEADS.length; i++) if (LEADS[i][0].test(n)) return LEADS[i][1];
     if (/\bsoju\b|slab alcool|cidru|cocktail|premixat|gin&tonic|fragolino|\brevo\b|\bgarage\b|festival|mi piace|royal bomon|\bpegas\b|mille bolle|bacio di bolle|aromatizata/.test(n)) return "slab";
@@ -1004,6 +1031,7 @@ textarea:focus { outline: none; border-color: var(--accent); }
       if (has(/sambuca/)) return 38;
       return 25;
     }
+    if (cat === "nealc") return 0;
     if (cat === "rom") return has(/tequila/) ? 38 : has(/spiced/) ? 35 : 40;
     if (cat === "alte") return has(/absint|absent/) ? 70 : 40;
     if (cat === "divin") return has(/shustov/) ? 30 : 40;
@@ -1070,7 +1098,8 @@ textarea:focus { outline: none; border-color: var(--accent); }
       if (!p) {
         var n = norm(name), cat = guessCat(n, hint); if (!cat) return;
         var a = abvOf(name), est = a == null; if (est) a = guessAbvCat(n, cat);
-        if (a == null || a <= 0) return;
+        if (cat === "nealc") { a = 0; est = false; }
+        else if (a == null || a <= 0) return;
         var nm = cleanName(name);
         p = { id: "n" + hashStr(norm(nm) + "|" + vol), cat: cat, name: nm, volL: vol, abv: a, est: est, base: reg, reg: reg, price: reg, old: null };
         p.tok = toks(nm); p.num = numsOf(p.tok); p.ntok = Object.keys(p.tok).length; p.key = norm(nm);
